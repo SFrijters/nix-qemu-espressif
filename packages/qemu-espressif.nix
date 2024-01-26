@@ -42,13 +42,13 @@ in
 
 qemu.overrideAttrs (oldAttrs: rec {
   pname = "${oldAttrs.pname}-espressif";
-  version = "8.1.3-20231206";
+  version = "8.2.0-20240122";
 
   src = fetchFromGitHub {
     owner = "espressif";
     repo = "qemu";
     rev = "refs/tags/esp-develop-${version}";
-    sha256 = "sha256-9oC4xL/XRsttJ/qoUL32ZHkpYjQaDMLcm2FMw57svHg=";
+    sha256 = "sha256-5eJXDjhDaBU3rzPnVVKpg9bqThUy+WdR5ip40cCDklk=";
   };
 
   buildInputs = oldAttrs.buildInputs ++ [ libgcrypt ];
@@ -71,9 +71,6 @@ qemu.overrideAttrs (oldAttrs: rec {
     chmod a+w subprojects/berkeley-testfloat-3
     cp subprojects/packagefiles/berkeley-testfloat-3/* subprojects/berkeley-testfloat-3
   '';
-
-  # This patch is for 8.2.0 and doesn't fit on the fork, which is still based on 8.1.3
-  patches = builtins.filter (x: (x.name or "") != "9d5b42beb6978dc6219d5dc029c9d453c6b8d503.diff") oldAttrs.patches;
 
   configureFlags = [
     # Flags taken from the original nixpkgs expression
