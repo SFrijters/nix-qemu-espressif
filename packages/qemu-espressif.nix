@@ -98,4 +98,6 @@ qemu.overrideAttrs (oldAttrs: rec {
     "--disable-vnc"
     "--disable-gtk"
   ];
+
+  meta.mainProgram = if enableEsp32c3 then "qemu-system-riscv32" else "qemu-system-xtensa";
 })
