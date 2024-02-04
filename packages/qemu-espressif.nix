@@ -99,5 +99,9 @@ qemu.overrideAttrs (oldAttrs: rec {
     "--disable-gtk"
   ];
 
-  meta.mainProgram = if enableEsp32c3 then "qemu-system-riscv32" else "qemu-system-xtensa";
+  meta = oldAttrs.meta // {
+    homepage = "https://github.com/espressif/qemu";
+    mainProgram = if enableEsp32c3 then "qemu-system-riscv32" else "qemu-system-xtensa";
+    maintainers = oldAttrs.meta.maintainers ++ [ lib.maintainers.sfrijters ];
+  };
 })

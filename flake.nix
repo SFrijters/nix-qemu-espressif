@@ -1,5 +1,5 @@
 {
-  description = "Qemu with ESP32 and ESP32C3 support, built from the Espressif fork";
+  description = "QEMU with ESP32 and/or ESP32C3 support, built from the Espressif fork";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs";
