@@ -1,5 +1,7 @@
 # nix-qemu-espressif
 
+[![nix flake check](https://github.com/SFrijters/nix-qemu-espressif/actions/workflows/build-qemu-espressif.yml/badge.svg)](https://github.com/SFrijters/nix-qemu-espressif/actions/workflows/build-qemu-espressif.yml)
+
 Packages a variant of the [qemu package in nixpkgs](https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/virtualization/qemu/default.nix) with support for ESP32/ESP32C3 chips, using [Espressif's fork of qemu](https://github.com/espressif/qemu). Current version: [8.2.0-20240122](https://github.com/espressif/qemu/releases/tag/esp-develop-8.2.0-20240122).
 
 Exposed packages:

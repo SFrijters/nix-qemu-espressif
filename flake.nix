@@ -18,6 +18,26 @@
           qemu-esp32 = pkgs.callPackage ./packages/qemu-espressif.nix { enableEsp32c3 = false; };
           qemu-esp32c3 = pkgs.callPackage ./packages/qemu-espressif.nix { enableEsp32 = false; };
         };
+
+        checks = let
+          mkCheck = p: pkgs.stdenvNoCC.mkDerivation {
+            name = "check-${p.name}";
+            src = ./.;
+            dontBuild = true;
+            doCheck = true;
+            checkPhase = ''
+              ${pkgs.lib.getExe p} --version
+            '';
+            installPhase = ''
+              mkdir "$out"
+            '';
+          };
+        in
+          {
+            qemu-espressif = mkCheck self.packages.${system}.qemu-espressif;
+            qemu-esp32 = mkCheck self.packages.${system}.qemu-esp32;
+            qemu-esp32c3 = mkCheck self.packages.${system}.qemu-esp32c3;
+          };
       }
     );
 }
