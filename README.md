@@ -11,3 +11,5 @@ Exposed packages:
 * qemu-esp32c3: Supports only ESP32C3.
 
 The default output of this flake is a nixpkgs overlay that adds these packages.
+
+*Note*: this flake uses the internals of the nixpkgs derivation for qemu, so it is potentially rather fragile and it is not recommended to make the nixpkgs input of this flake follow another.
