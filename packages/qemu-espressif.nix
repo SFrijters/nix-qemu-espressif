@@ -48,7 +48,7 @@ qemu.overrideAttrs (oldAttrs: rec {
     owner = "espressif";
     repo = "qemu";
     rev = "refs/tags/esp-develop-${version}";
-    sha256 = "sha256-5eJXDjhDaBU3rzPnVVKpg9bqThUy+WdR5ip40cCDklk=";
+    hash = "sha256-5eJXDjhDaBU3rzPnVVKpg9bqThUy+WdR5ip40cCDklk=";
   };
 
   buildInputs = oldAttrs.buildInputs ++ [ libgcrypt ];
