@@ -13,3 +13,5 @@ Exposed packages:
 The default output of this flake is a nixpkgs overlay that adds these packages.
 
 *Note*: this flake uses the internals of the nixpkgs derivation for qemu, so it is potentially rather fragile and it is not recommended to make the nixpkgs input of this flake follow another.
+
+An example of usage can be found at https://github.com/SFrijters/nix-qemu-esp32c3-rust-example .

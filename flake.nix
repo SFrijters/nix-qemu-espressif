@@ -19,14 +19,17 @@
           qemu-esp32c3 = pkgs.callPackage ./packages/qemu-espressif.nix { enableEsp32 = false; };
         };
 
+        # Some simple sanity checks; for a full emulation check, see https://github.com/SFrijters/nix-qemu-esp32c3-rust-example
         checks = let
-          mkCheck = p: pkgs.stdenvNoCC.mkDerivation {
+          mkCheck = p: s: pkgs.stdenvNoCC.mkDerivation {
             name = "check-${p.name}";
             src = ./.;
             dontBuild = true;
             doCheck = true;
             checkPhase = ''
+              echo ${pkgs.lib.getExe p}
               ${pkgs.lib.getExe p} --version
+              ${pkgs.lib.getExe p} --machine help | grep "^${s} "
             '';
             installPhase = ''
               mkdir "$out"
@@ -34,9 +37,9 @@
           };
         in
           {
-            qemu-espressif = mkCheck self.packages.${system}.qemu-espressif;
-            qemu-esp32 = mkCheck self.packages.${system}.qemu-esp32;
-            qemu-esp32c3 = mkCheck self.packages.${system}.qemu-esp32c3;
+            qemu-espressif = mkCheck self.packages.${system}.qemu-espressif "esp32";
+            qemu-esp32 = mkCheck self.packages.${system}.qemu-esp32 "esp32";
+            qemu-esp32c3 = mkCheck self.packages.${system}.qemu-esp32c3 "esp32c3";
           };
       }
     );
