@@ -2,6 +2,7 @@
 , stdenv
 , fetchFromGitLab
 , fetchFromGitHub
+, fetchpatch
 , qemu
 , libgcrypt
 , enableEsp32 ? true
@@ -71,6 +72,19 @@ qemu.overrideAttrs (oldAttrs: rec {
     chmod a+w subprojects/berkeley-testfloat-3
     cp subprojects/packagefiles/berkeley-testfloat-3/* subprojects/berkeley-testfloat-3
   '';
+
+  patches = oldAttrs.patches ++ [
+    # Fix display issues when using virtio-gpu on 8.2.0 https://gitlab.com/qemu-project/qemu/-/issues/2051
+    (fetchpatch {
+      url = "https://gitlab.com/qemu-project/qemu/-/commit/9d5b42beb6978dc6219d5dc029c9d453c6b8d503.diff";
+      sha256 = "sha256-NknkH/gFTsMcdq8/ArwM4+qrpU+ZHd+xVMFUuMJTtf0=";
+    })
+    (fetchpatch {
+      name = "CVE-2023-6693.patch";
+      url = "https://gitlab.com/qemu-project/qemu/-/commit/2220e8189fb94068dbad333228659fbac819abb0.patch";
+      sha256 = "sha256-uoFFFsVZ8XnsI2GD7xsRFNWghWL7/PSYTc1yhXI6nv4=";
+    })
+  ];
 
   configureFlags = [
     # Flags taken from the original nixpkgs expression
