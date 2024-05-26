@@ -58,7 +58,8 @@ qemu.overrideAttrs (oldAttrs: {
 
   postPatch = oldAttrs.postPatch + ''
     # Correctly detect libgcrypt
-    sed -i "s/config-tool/auto/" meson.build
+    substituteInPlace meson.build \
+      --replace-fail config-tool pkg-config
 
     # Prefetch Meson subprojects
     rm subprojects/keycodemapdb.wrap
