@@ -101,7 +101,7 @@ qemu.overrideAttrs (oldAttrs: rec {
 
   meta = oldAttrs.meta // {
     homepage = "https://github.com/espressif/qemu";
-    mainProgram = if enableEsp32c3 then "qemu-system-riscv32" else "qemu-system-xtensa";
+    mainProgram = if (!enableEsp32) then "qemu-system-riscv32" else "qemu-system-xtensa";
     maintainers = oldAttrs.meta.maintainers ++ [ lib.maintainers.sfrijters ];
   };
 })
