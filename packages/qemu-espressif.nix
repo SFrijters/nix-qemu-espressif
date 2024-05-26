@@ -39,11 +39,13 @@ let
   targets =
     lib.optionals enableEsp32 [ "xtensa-softmmu" ] ++
     lib.optionals enableEsp32c3 [ "riscv32-softmmu" ];
+
+  version = "8.2.0-20240122";
 in
 
-qemu.overrideAttrs (oldAttrs: rec {
+qemu.overrideAttrs (oldAttrs: {
   pname = "${oldAttrs.pname}-${if (enableEsp32 && !enableEsp32c3) then "esp32" else if (!enableEsp32 && enableEsp32c3) then "esp32c3" else "espressif"}";
-  version = "8.2.0-20240122";
+  inherit version;
 
   src = fetchFromGitHub {
     owner = "espressif";
