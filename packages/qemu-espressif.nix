@@ -40,7 +40,7 @@ let
     lib.optionals enableEsp32 [ "xtensa-softmmu" ] ++
     lib.optionals enableEsp32c3 [ "riscv32-softmmu" ];
 
-  version = "8.2.0-20240122";
+  version = "9.0.0-20240606";
 in
 
 qemu.overrideAttrs (oldAttrs: {
@@ -51,7 +51,7 @@ qemu.overrideAttrs (oldAttrs: {
     owner = "espressif";
     repo = "qemu";
     rev = "refs/tags/esp-develop-${version}";
-    hash = "sha256-5eJXDjhDaBU3rzPnVVKpg9bqThUy+WdR5ip40cCDklk=";
+    hash = "sha256-6RX7wGv1Lkxw9ZlLDlQ/tlq/V8QbVzcb27NTr2uwePI=";
   };
 
   buildInputs = oldAttrs.buildInputs ++ [ libgcrypt ];
@@ -76,18 +76,7 @@ qemu.overrideAttrs (oldAttrs: {
     cp subprojects/packagefiles/berkeley-testfloat-3/* subprojects/berkeley-testfloat-3
   '';
 
-  patches = oldAttrs.patches ++ [
-    # Fix display issues when using virtio-gpu on 8.2.0 https://gitlab.com/qemu-project/qemu/-/issues/2051
-    (fetchpatch {
-      url = "https://gitlab.com/qemu-project/qemu/-/commit/9d5b42beb6978dc6219d5dc029c9d453c6b8d503.diff";
-      sha256 = "sha256-NknkH/gFTsMcdq8/ArwM4+qrpU+ZHd+xVMFUuMJTtf0=";
-    })
-    (fetchpatch {
-      name = "CVE-2023-6693.patch";
-      url = "https://gitlab.com/qemu-project/qemu/-/commit/2220e8189fb94068dbad333228659fbac819abb0.patch";
-      sha256 = "sha256-uoFFFsVZ8XnsI2GD7xsRFNWghWL7/PSYTc1yhXI6nv4=";
-    })
-  ];
+  patches = oldAttrs.patches ++ [ ];
 
   configureFlags = [
     # Flags taken from the original nixpkgs expression
