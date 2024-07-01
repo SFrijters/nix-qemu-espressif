@@ -15,7 +15,7 @@ jobs:
     - uses: cachix/install-nix-action@v27
       with:
         github_access_token: ${{ secrets.GITHUB_TOKEN }}
-    - uses: DeterminateSystems/magic-nix-cache-action@v6
+    - uses: DeterminateSystems/magic-nix-cache-action@v7
     - run: |
         nix flake check -L
         nix run . -- --version
