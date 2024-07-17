@@ -21,3 +21,5 @@ jobs:
         nix run . -- --version
         nix run .#qemu-esp32 -- --version
         nix run .#qemu-esp32c3 -- --version
+        nix fmt
+        git diff --exit-code
