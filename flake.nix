@@ -6,11 +6,21 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils, ... }:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      ...
+    }:
     {
       overlays.default = import ./.;
-    } // flake-utils.lib.eachDefaultSystem (system:
-      let pkgs = nixpkgs.legacyPackages.${system}; in
+    }
+    // flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+      in
       {
         packages = rec {
           default = qemu-espressif;
@@ -20,22 +30,25 @@
         };
 
         # Some simple sanity checks; for a full emulation check, see https://github.com/SFrijters/nix-qemu-esp32c3-rust-example
-        checks = let
-          mkCheck = p: s: pkgs.stdenvNoCC.mkDerivation {
-            name = "check-${p.name}";
-            src = ./.;
-            dontBuild = true;
-            doCheck = true;
-            checkPhase = ''
-              echo ${pkgs.lib.getExe p}
-              ${pkgs.lib.getExe p} --version
-              ${pkgs.lib.getExe p} --machine help | grep "^${s} "
-            '';
-            installPhase = ''
-              mkdir "$out"
-            '';
-          };
-        in
+        checks =
+          let
+            mkCheck =
+              p: s:
+              pkgs.stdenvNoCC.mkDerivation {
+                name = "check-${p.name}";
+                src = ./.;
+                dontBuild = true;
+                doCheck = true;
+                checkPhase = ''
+                  echo ${pkgs.lib.getExe p}
+                  ${pkgs.lib.getExe p} --version
+                  ${pkgs.lib.getExe p} --machine help | grep "^${s} "
+                '';
+                installPhase = ''
+                  mkdir "$out"
+                '';
+              };
+          in
           {
             qemu-espressif = mkCheck self.packages.${system}.qemu-espressif "esp32";
             qemu-esp32 = mkCheck self.packages.${system}.qemu-esp32 "esp32";

@@ -1,12 +1,13 @@
-{ lib
-, stdenv
-, fetchFromGitLab
-, fetchFromGitHub
-, fetchpatch
-, qemu
-, libgcrypt
-, enableEsp32 ? true
-, enableEsp32c3 ? true
+{
+  lib,
+  stdenv,
+  fetchFromGitLab,
+  fetchFromGitHub,
+  fetchpatch,
+  qemu,
+  libgcrypt,
+  enableEsp32 ? true,
+  enableEsp32c3 ? true,
 }:
 
 assert enableEsp32 || enableEsp32c3;
@@ -37,14 +38,21 @@ let
   };
 
   targets =
-    lib.optionals enableEsp32 [ "xtensa-softmmu" ] ++
-    lib.optionals enableEsp32c3 [ "riscv32-softmmu" ];
+    lib.optionals enableEsp32 [ "xtensa-softmmu" ]
+    ++ lib.optionals enableEsp32c3 [ "riscv32-softmmu" ];
 
   version = "9.0.0-20240606";
 in
 
 qemu.overrideAttrs (oldAttrs: {
-  pname = "${oldAttrs.pname}-${if (enableEsp32 && !enableEsp32c3) then "esp32" else if (!enableEsp32 && enableEsp32c3) then "esp32c3" else "espressif"}";
+  pname = "${oldAttrs.pname}-${
+    if (enableEsp32 && !enableEsp32c3) then
+      "esp32"
+    else if (!enableEsp32 && enableEsp32c3) then
+      "esp32c3"
+    else
+      "espressif"
+  }";
   inherit version;
 
   src = fetchFromGitHub {
@@ -56,25 +64,27 @@ qemu.overrideAttrs (oldAttrs: {
 
   buildInputs = oldAttrs.buildInputs ++ [ libgcrypt ];
 
-  postPatch = oldAttrs.postPatch + ''
-    # Correctly detect libgcrypt
-    substituteInPlace meson.build \
-      --replace-fail config-tool pkg-config
+  postPatch =
+    oldAttrs.postPatch
+    + ''
+      # Correctly detect libgcrypt
+      substituteInPlace meson.build \
+        --replace-fail config-tool pkg-config
 
-    # Prefetch Meson subprojects
-    rm subprojects/keycodemapdb.wrap
-    ln -s ${keycodemapdb} subprojects/keycodemapdb
+      # Prefetch Meson subprojects
+      rm subprojects/keycodemapdb.wrap
+      ln -s ${keycodemapdb} subprojects/keycodemapdb
 
-    rm subprojects/berkeley-softfloat-3.wrap
-    cp -r ${berkeley-softfloat-3} subprojects/berkeley-softfloat-3
-    chmod a+w subprojects/berkeley-softfloat-3
-    cp subprojects/packagefiles/berkeley-softfloat-3/* subprojects/berkeley-softfloat-3
+      rm subprojects/berkeley-softfloat-3.wrap
+      cp -r ${berkeley-softfloat-3} subprojects/berkeley-softfloat-3
+      chmod a+w subprojects/berkeley-softfloat-3
+      cp subprojects/packagefiles/berkeley-softfloat-3/* subprojects/berkeley-softfloat-3
 
-    rm subprojects/berkeley-testfloat-3.wrap
-    cp -r ${berkeley-testfloat-3} subprojects/berkeley-testfloat-3
-    chmod a+w subprojects/berkeley-testfloat-3
-    cp subprojects/packagefiles/berkeley-testfloat-3/* subprojects/berkeley-testfloat-3
-  '';
+      rm subprojects/berkeley-testfloat-3.wrap
+      cp -r ${berkeley-testfloat-3} subprojects/berkeley-testfloat-3
+      chmod a+w subprojects/berkeley-testfloat-3
+      cp subprojects/packagefiles/berkeley-testfloat-3/* subprojects/berkeley-testfloat-3
+    '';
 
   patches = oldAttrs.patches ++ [ ];
 
