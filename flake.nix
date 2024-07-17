@@ -41,6 +41,8 @@
             qemu-esp32 = mkCheck self.packages.${system}.qemu-esp32 "esp32";
             qemu-esp32c3 = mkCheck self.packages.${system}.qemu-esp32c3 "esp32c3";
           };
+
+        formatter = pkgs.nixfmt-rfc-style;
       }
     );
 }
