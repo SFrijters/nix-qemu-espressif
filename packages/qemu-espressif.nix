@@ -3,7 +3,6 @@
   stdenv,
   fetchFromGitLab,
   fetchFromGitHub,
-  fetchpatch,
   qemu,
   libgcrypt,
   enableEsp32 ? true,
