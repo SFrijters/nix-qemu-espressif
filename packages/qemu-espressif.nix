@@ -85,7 +85,11 @@ qemu.overrideAttrs (oldAttrs: {
       cp subprojects/packagefiles/berkeley-testfloat-3/* subprojects/berkeley-testfloat-3
     '';
 
-  patches = oldAttrs.patches ++ [ ];
+  # This patch in currently locked nixpkgs is for 9.1.0 and doesn't fit on the fork, which is still based on 9.0.0
+  # We use an older version of the patch.
+  patches = (builtins.filter (x: builtins.baseNameOf x != "fix-qemu-ga.patch") oldAttrs.patches) ++ [
+    ./fix-qemu-ga.patch
+  ];
 
   configureFlags = [
     # Flags taken from the original nixpkgs expression
