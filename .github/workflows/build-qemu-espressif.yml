@@ -17,6 +17,11 @@ jobs:
         github_access_token: ${{ secrets.GITHUB_TOKEN }}
     - uses: DeterminateSystems/magic-nix-cache-action@v8
 
+    - name: Flake metadata
+      run: |
+        nix flake metadata
+        nix flake show
+
     - name: Flake check
       run: |
         nix flake check -L
