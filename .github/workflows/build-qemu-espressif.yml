@@ -16,10 +16,24 @@ jobs:
       with:
         github_access_token: ${{ secrets.GITHUB_TOKEN }}
     - uses: DeterminateSystems/magic-nix-cache-action@v8
-    - run: |
+
+    - name: Flake check
+      run: |
         nix flake check -L
+
+    - name: Run qemu-espressif
+      run: |
         nix run . -- --version
+
+    - name: Run qemu-esp32
+      run: |
         nix run .#qemu-esp32 -- --version
+
+    - name: Run qemu-esp32c3
+      run: |
         nix run .#qemu-esp32c3 -- --version
+
+    - name: Formatter check
+      run: |
         nix fmt
         git diff --exit-code
