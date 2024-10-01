@@ -24,9 +24,9 @@
       {
         packages = rec {
           default = qemu-espressif;
-          qemu-espressif = pkgs.callPackage ./packages/qemu-espressif.nix { };
-          qemu-esp32 = pkgs.callPackage ./packages/qemu-espressif.nix { enableEsp32c3 = false; };
-          qemu-esp32c3 = pkgs.callPackage ./packages/qemu-espressif.nix { enableEsp32 = false; };
+          qemu-espressif = pkgs.callPackage ./packages/qemu-espressif { };
+          qemu-esp32 = pkgs.callPackage ./packages/qemu-espressif { enableEsp32c3 = false; };
+          qemu-esp32c3 = pkgs.callPackage ./packages/qemu-espressif { enableEsp32 = false; };
         };
 
         # Some simple sanity checks; for a full emulation check, see https://github.com/SFrijters/nix-qemu-esp32c3-rust-example
