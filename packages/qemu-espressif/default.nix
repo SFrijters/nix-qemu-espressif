@@ -90,33 +90,35 @@ qemu.overrideAttrs (oldAttrs: {
     ./fix-qemu-ga.patch
   ];
 
-  configureFlags = [
-    # Flags taken from the original nixpkgs expression
-    "--disable-strip" # We'll strip ourselves after separating debug info.
-    "--enable-tools"
-    "--localstatedir=/var"
-    "--sysconfdir=/etc"
-    "--cross-prefix=${stdenv.cc.targetPrefix}"
+  configureFlags =
+    [
+      # Flags taken from the original nixpkgs expression
+      "--disable-strip" # We'll strip ourselves after separating debug info.
+      "--enable-tools"
+      "--localstatedir=/var"
+      "--sysconfdir=/etc"
+      "--cross-prefix=${stdenv.cc.targetPrefix}"
 
-    # Flags taken from the instructions for the Espressif fork
-    # Based on https://github.com/espressif/esp-toolchain-docs/blob/main/qemu/esp32/README.md
-    # Based on https://github.com/espressif/esp-toolchain-docs/tree/main/qemu/esp32c3/README.md
-    "--target-list=${lib.concatStringsSep "," targets}"
-    "--enable-gcrypt"
-    "--enable-slirp"
-    "--enable-debug"
-    # https://github.com/espressif/qemu/issues/77
-    # https://github.com/espressif/qemu/issues/84
-    # "--enable-sanitizers"
-    "--enable-sdl"
-    "--disable-strip"
-    "--disable-user"
-    "--disable-capstone"
-    "--disable-vnc"
-    "--disable-gtk"
-  ] ++ lib.optionals stdenv.hostPlatform.isLinux [
-    "--enable-linux-aio"
-  ];
+      # Flags taken from the instructions for the Espressif fork
+      # Based on https://github.com/espressif/esp-toolchain-docs/blob/main/qemu/esp32/README.md
+      # Based on https://github.com/espressif/esp-toolchain-docs/tree/main/qemu/esp32c3/README.md
+      "--target-list=${lib.concatStringsSep "," targets}"
+      "--enable-gcrypt"
+      "--enable-slirp"
+      "--enable-debug"
+      # https://github.com/espressif/qemu/issues/77
+      # https://github.com/espressif/qemu/issues/84
+      # "--enable-sanitizers"
+      "--enable-sdl"
+      "--disable-strip"
+      "--disable-user"
+      "--disable-capstone"
+      "--disable-vnc"
+      "--disable-gtk"
+    ]
+    ++ lib.optionals stdenv.hostPlatform.isLinux [
+      "--enable-linux-aio"
+    ];
 
   meta = oldAttrs.meta // {
     homepage = "https://github.com/espressif/qemu";
