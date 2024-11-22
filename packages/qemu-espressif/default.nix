@@ -69,15 +69,18 @@ qemu.overrideAttrs (oldAttrs: {
       substituteInPlace meson.build \
         --replace-fail config-tool pkg-config
 
-      # Prefetch Meson subprojects
+      # Prefetch Meson subprojects, after checking that the revision that we fetch matches the original
+      grep -q "revision = ${keycodemapdb.rev}" subprojects/keycodemapdb.wrap
       rm subprojects/keycodemapdb.wrap
       ln -s ${keycodemapdb} subprojects/keycodemapdb
 
+      grep -q "revision = ${berkeley-softfloat-3.rev}" subprojects/berkeley-softfloat-3.wrap
       rm subprojects/berkeley-softfloat-3.wrap
       cp -r ${berkeley-softfloat-3} subprojects/berkeley-softfloat-3
       chmod a+w subprojects/berkeley-softfloat-3
       cp subprojects/packagefiles/berkeley-softfloat-3/* subprojects/berkeley-softfloat-3
 
+      grep -q "revision = ${berkeley-testfloat-3.rev}" subprojects/berkeley-testfloat-3.wrap
       rm subprojects/berkeley-testfloat-3.wrap
       cp -r ${berkeley-testfloat-3} subprojects/berkeley-testfloat-3
       chmod a+w subprojects/berkeley-testfloat-3
