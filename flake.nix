@@ -26,11 +26,12 @@
         pkgs: qemu-variant: machine:
         let
           p = self.packages.${pkgs.system}.${qemu-variant};
+          exe = pkgs.lib.getExe p;
         in
         pkgs.runCommand "check-${p.name}" { } ''
-          echo ${pkgs.lib.getExe p}
-          ${pkgs.lib.getExe p} --version | grep "${p.version}"
-          ${pkgs.lib.getExe p} --machine help | grep "^${machine} "
+          echo ${exe}
+          ${exe} --version | grep "${p.version}"
+          ${exe} --machine help | grep "^${machine} "
           mkdir "$out"
         '';
     in
