@@ -5,6 +5,7 @@
   fetchFromGitHub,
   qemu,
   libgcrypt,
+  SDL2,
   enableEsp32 ? true,
   enableEsp32c3 ? true,
 }:
@@ -16,8 +17,7 @@ let
     owner = "qemu-project";
     repo = "keycodemapdb";
     rev = "f5772a62ec52591ff6870b7e8ef32482371f22c6";
-    hash = "sha256-EQrnBAXQhllbVCHpOsgREzYGncMUPEIoWFGnjo+hrH4=";
-    fetchSubmodules = true;
+    hash = "sha256-GbZ5mrUYLXMi0IX4IZzles0Oyc095ij2xAsiLNJwfKQ=";
   };
 
   berkeley-softfloat-3 = fetchFromGitLab {
@@ -25,7 +25,6 @@ let
     repo = "berkeley-softfloat-3";
     rev = "b64af41c3276f97f0e181920400ee056b9c88037";
     hash = "sha256-Yflpx+mjU8mD5biClNpdmon24EHg4aWBZszbOur5VEA=";
-    fetchSubmodules = true;
   };
 
   berkeley-testfloat-3 = fetchFromGitLab {
@@ -33,7 +32,6 @@ let
     repo = "berkeley-testfloat-3";
     rev = "e7af9751d9f9fd3b47911f51a5cfd08af256a9ab";
     hash = "sha256-inQAeYlmuiRtZm37xK9ypBltCJ+ycyvIeIYZK8a+RYU=";
-    fetchSubmodules = true;
   };
 
   targets =
@@ -61,7 +59,8 @@ qemu.overrideAttrs (oldAttrs: {
     hash = "sha256-6RX7wGv1Lkxw9ZlLDlQ/tlq/V8QbVzcb27NTr2uwePI=";
   };
 
-  buildInputs = oldAttrs.buildInputs ++ [ libgcrypt ];
+  buildInputs =
+    oldAttrs.buildInputs ++ [ libgcrypt ] ++ lib.optionals stdenv.hostPlatform.isDarwin [ SDL2 ];
 
   postPatch =
     oldAttrs.postPatch
@@ -98,7 +97,6 @@ qemu.overrideAttrs (oldAttrs: {
     "--localstatedir=/var"
     "--sysconfdir=/etc"
     "--cross-prefix=${stdenv.cc.targetPrefix}"
-    "--enable-linux-aio"
 
     # Flags taken from the instructions for the Espressif fork
     # Based on https://github.com/espressif/esp-toolchain-docs/blob/main/qemu/esp32/README.md
@@ -116,6 +114,8 @@ qemu.overrideAttrs (oldAttrs: {
     "--disable-capstone"
     "--disable-vnc"
     "--disable-gtk"
+  ] ++ lib.optionals stdenv.hostPlatform.isLinux [
+    "--enable-linux-aio"
   ];
 
   meta = oldAttrs.meta // {
