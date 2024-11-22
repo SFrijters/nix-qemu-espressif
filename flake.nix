@@ -1,61 +1,64 @@
 {
   description = "QEMU with ESP32 and/or ESP32C3 support, built from the Espressif fork";
 
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs";
-    flake-utils.url = "github:numtide/flake-utils";
-  };
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs";
 
   outputs =
     {
       self,
       nixpkgs,
-      flake-utils,
       ...
     }:
+    let
+      forAllSystems =
+        function:
+        nixpkgs.lib.genAttrs [
+          "x86_64-linux"
+          "aarch64-linux"
+          "x86_64-darwin"
+          "aarch64-darwin"
+        ] (system: function nixpkgs.legacyPackages.${system});
+
+      # For a given nixpkgs package set `pkgs`,
+      # check that the mainProgram of the qemu package variant `variant` defined in this flake
+      # supports the machine `machine`.
+      mkCheck =
+        pkgs: qemu-variant: machine:
+        let
+          p = self.packages.${pkgs.system}.${qemu-variant};
+        in
+        pkgs.stdenvNoCC.mkDerivation {
+          name = "check-${p.name}";
+          src = ./.;
+          dontBuild = true;
+          doCheck = true;
+          checkPhase = ''
+            echo ${pkgs.lib.getExe p}
+            ${pkgs.lib.getExe p} --version | grep "${p.version}"
+            ${pkgs.lib.getExe p} --machine help | grep "^${machine} "
+          '';
+          installPhase = ''
+            mkdir "$out"
+          '';
+        };
+    in
     {
       overlays.default = import ./.;
-    }
-    // flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-      in
-      {
-        packages = rec {
-          default = qemu-espressif;
-          qemu-espressif = pkgs.callPackage ./packages/qemu-espressif { };
-          qemu-esp32 = pkgs.callPackage ./packages/qemu-espressif { enableEsp32c3 = false; };
-          qemu-esp32c3 = pkgs.callPackage ./packages/qemu-espressif { enableEsp32 = false; };
-        };
 
-        # Some simple sanity checks; for a full emulation check, see https://github.com/SFrijters/nix-qemu-esp32c3-rust-example
-        checks =
-          let
-            mkCheck =
-              p: s:
-              pkgs.stdenvNoCC.mkDerivation {
-                name = "check-${p.name}";
-                src = ./.;
-                dontBuild = true;
-                doCheck = true;
-                checkPhase = ''
-                  echo ${pkgs.lib.getExe p}
-                  ${pkgs.lib.getExe p} --version
-                  ${pkgs.lib.getExe p} --machine help | grep "^${s} "
-                '';
-                installPhase = ''
-                  mkdir "$out"
-                '';
-              };
-          in
-          {
-            qemu-espressif = mkCheck self.packages.${system}.qemu-espressif "esp32";
-            qemu-esp32 = mkCheck self.packages.${system}.qemu-esp32 "esp32";
-            qemu-esp32c3 = mkCheck self.packages.${system}.qemu-esp32c3 "esp32c3";
-          };
+      packages = forAllSystems (pkgs: rec {
+        default = qemu-espressif;
+        qemu-espressif = pkgs.callPackage ./packages/qemu-espressif { };
+        qemu-esp32 = pkgs.callPackage ./packages/qemu-espressif { enableEsp32c3 = false; };
+        qemu-esp32c3 = pkgs.callPackage ./packages/qemu-espressif { enableEsp32 = false; };
+      });
 
-        formatter = pkgs.nixfmt-rfc-style;
-      }
-    );
+      # Some simple sanity checks; for a full emulation check, see https://github.com/SFrijters/nix-qemu-esp32c3-rust-example
+      checks = forAllSystems (pkgs: {
+        qemu-espressif = mkCheck pkgs "qemu-espressif" "esp32";
+        qemu-esp32 = mkCheck pkgs "qemu-esp32" "esp32";
+        qemu-esp32c3 = mkCheck pkgs "qemu-esp32c3" "esp32c3";
+      });
+
+      formatter = forAllSystems (pkgs: pkgs.nixfmt-rfc-style);
+    };
 }
