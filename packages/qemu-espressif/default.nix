@@ -3,6 +3,7 @@
   stdenv,
   fetchFromGitLab,
   fetchFromGitHub,
+  versionCheckHook,
   qemu,
   libgcrypt,
   SDL2,
@@ -39,6 +40,8 @@ let
     ++ lib.optionals enableEsp32c3 [ "riscv32-softmmu" ];
 
   version = "9.0.0-20240606";
+
+  mainProgram = if (!enableEsp32) then "qemu-system-riscv32" else "qemu-system-xtensa";
 in
 
 qemu.overrideAttrs (oldAttrs: {
@@ -85,6 +88,9 @@ qemu.overrideAttrs (oldAttrs: {
       cp -r ${berkeley-testfloat-3} subprojects/berkeley-testfloat-3
       chmod a+w subprojects/berkeley-testfloat-3
       cp subprojects/packagefiles/berkeley-testfloat-3/* subprojects/berkeley-testfloat-3
+
+      # Overwrite the supplied version with the nixpkgs version with the date suffix
+      echo ${version} > VERSION
     '';
 
   # This patch in currently locked nixpkgs is for 9.1.0 and doesn't fit on the fork, which is still based on 9.0.0
@@ -123,9 +129,13 @@ qemu.overrideAttrs (oldAttrs: {
       "--enable-linux-aio"
     ];
 
+  nativeInstallCheckInputs = [ versionCheckHook ];
+  doInstallCheck = true;
+  versionCheckProgram = "${builtins.placeholder "out"}/bin/${mainProgram}";
+
   meta = oldAttrs.meta // {
+    inherit mainProgram;
     homepage = "https://github.com/espressif/qemu";
-    mainProgram = if (!enableEsp32) then "qemu-system-riscv32" else "qemu-system-xtensa";
     maintainers = oldAttrs.meta.maintainers ++ [ lib.maintainers.sfrijters ];
   };
 })
