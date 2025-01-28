@@ -5,10 +5,15 @@
   fetchFromGitHub,
   versionCheckHook,
   qemu,
+  glib,
+  zlib,
   libgcrypt,
+  libslirp,
+  libaio,
   SDL2,
   enableEsp32 ? true,
   enableEsp32c3 ? true,
+  minimal ? false,
 }:
 
 assert enableEsp32 || enableEsp32c3;
@@ -42,9 +47,11 @@ let
   version = "9.0.0-20240606";
 
   mainProgram = if (!enableEsp32) then "qemu-system-riscv32" else "qemu-system-xtensa";
+
+  qemu' = qemu.override { inherit minimal; };
 in
 
-qemu.overrideAttrs (oldAttrs: {
+qemu'.overrideAttrs (oldAttrs: {
   pname = "${oldAttrs.pname}-${
     if (enableEsp32 && !enableEsp32c3) then
       "esp32"
@@ -52,7 +59,7 @@ qemu.overrideAttrs (oldAttrs: {
       "esp32c3"
     else
       "espressif"
-  }";
+  }${lib.optionalString minimal "-minimal"}";
   inherit version;
 
   src = fetchFromGitHub {
@@ -62,8 +69,10 @@ qemu.overrideAttrs (oldAttrs: {
     hash = "sha256-6RX7wGv1Lkxw9ZlLDlQ/tlq/V8QbVzcb27NTr2uwePI=";
   };
 
-  buildInputs =
-    oldAttrs.buildInputs ++ [ libgcrypt ] ++ lib.optionals stdenv.hostPlatform.isDarwin [ SDL2 ];
+  buildInputs = if minimal then
+    ([ glib zlib libgcrypt libslirp ] ++ lib.optionals stdenv.hostPlatform.isLinux [ libaio ])
+      else
+        (oldAttrs.buildInputs ++ [ libgcrypt ] ++ lib.optionals stdenv.hostPlatform.isDarwin [ SDL2 ]);
 
   postPatch =
     oldAttrs.postPatch
@@ -118,13 +127,13 @@ qemu.overrideAttrs (oldAttrs: {
       # https://github.com/espressif/qemu/issues/77
       # https://github.com/espressif/qemu/issues/84
       # "--enable-sanitizers"
-      "--enable-sdl"
       "--disable-strip"
       "--disable-user"
       "--disable-capstone"
       "--disable-vnc"
       "--disable-gtk"
-    ]
+    ] ++ lib.optionals (!minimal) [
+      "--enable-sdl" ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [
       "--enable-linux-aio"
     ];
