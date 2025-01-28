@@ -69,10 +69,19 @@ qemu'.overrideAttrs (oldAttrs: {
     hash = "sha256-6RX7wGv1Lkxw9ZlLDlQ/tlq/V8QbVzcb27NTr2uwePI=";
   };
 
-  buildInputs = if minimal then
-    ([ glib zlib libgcrypt libslirp ] ++ lib.optionals stdenv.hostPlatform.isLinux [ libaio ])
-      else
-        (oldAttrs.buildInputs ++ [ libgcrypt ] ++ lib.optionals stdenv.hostPlatform.isDarwin [ SDL2 ]);
+  buildInputs =
+    if minimal then
+      (
+        [
+          glib
+          zlib
+          libgcrypt
+          libslirp
+        ]
+        ++ lib.optionals stdenv.hostPlatform.isLinux [ libaio ]
+      )
+    else
+      (oldAttrs.buildInputs ++ [ libgcrypt ] ++ lib.optionals stdenv.hostPlatform.isDarwin [ SDL2 ]);
 
   postPatch =
     oldAttrs.postPatch
@@ -132,8 +141,10 @@ qemu'.overrideAttrs (oldAttrs: {
       "--disable-capstone"
       "--disable-vnc"
       "--disable-gtk"
-    ] ++ lib.optionals (!minimal) [
-      "--enable-sdl" ]
+    ]
+    ++ lib.optionals (!minimal) [
+      "--enable-sdl"
+    ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [
       "--enable-linux-aio"
     ];
