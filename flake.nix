@@ -82,6 +82,7 @@
         };
       });
 
+      # Some simple sanity checks; for a full emulation check, see https://github.com/SFrijters/nix-qemu-esp32c3-rust-example
       checks = lib.mapAttrs (
         system: perSystem:
         lib.mapAttrs (_: pkg: mkCheck system pkg) (lib.filterAttrs (n: _: n != "default") perSystem)
