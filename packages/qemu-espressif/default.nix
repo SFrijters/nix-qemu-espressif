@@ -10,6 +10,8 @@
   libgcrypt,
   libslirp,
   libaio,
+  apple-sdk_13,
+  darwinMinVersionHook,
   SDL2,
   enableEsp32 ? true,
   enableEsp32c3 ? true,
@@ -46,6 +48,11 @@ let
 
   version = "9.0.0-20240606";
 
+  darwinSDK = [
+    apple-sdk_13
+    (darwinMinVersionHook "13")
+  ];
+
   mainProgram = if (!enableEsp32) then "qemu-system-riscv32" else "qemu-system-xtensa";
 
   qemu' = qemu.override { inherit minimal; };
@@ -79,6 +86,7 @@ qemu'.overrideAttrs (oldAttrs: {
           libslirp
         ]
         ++ lib.optionals stdenv.hostPlatform.isLinux [ libaio ]
+        ++ lib.optionals stdenv.hostPlatform.isDarwin darwinSDK
       )
     else
       (oldAttrs.buildInputs ++ [ libgcrypt ] ++ lib.optionals stdenv.hostPlatform.isDarwin [ SDL2 ]);
