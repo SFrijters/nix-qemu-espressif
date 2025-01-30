@@ -72,7 +72,7 @@ qemu'.overrideAttrs (oldAttrs: {
   src = fetchFromGitHub {
     owner = "espressif";
     repo = "qemu";
-    rev = "refs/tags/esp-develop-${version}";
+    tag = "esp-develop-${version}";
     hash = "sha256-6RX7wGv1Lkxw9ZlLDlQ/tlq/V8QbVzcb27NTr2uwePI=";
   };
 
