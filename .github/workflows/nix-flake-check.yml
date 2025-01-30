@@ -34,16 +34,6 @@ jobs:
         nix run . -- --version
         nix run . -- --machine help
 
-    - name: Run qemu-esp32
-      run: |
-        nix run .#qemu-esp32 -- --version
-        nix run .#qemu-esp32 -- --machine help
-
-    - name: Run qemu-esp32c3
-      run: |
-        nix run .#qemu-esp32c3 -- --version
-        nix run .#qemu-esp32c3 -- --machine help
-
     - name: Formatter check
       run: |
         nix fmt
