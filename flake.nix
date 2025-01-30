@@ -41,14 +41,10 @@
             "qemu-system-riscv32" = [ "esp32c3" ];
           };
 
-          isMinimal = lib.strings.hasSuffix "-minimal" pkg.pname;
-          pnameBase = lib.strings.removeSuffix "-minimal" pkg.pname;
-
           mkCheckVersion =
             exe: "echo ${lib.getExe' pkg exe}\n${lib.getExe' pkg exe} --version | grep '${pkg.version}'\n";
           mkCheckMinimal =
-            exe:
-            "${lib.optionalString isMinimal "!"} ${lib.getExe' pkg exe} --display help | grep -v -e 'Available\\|none\\|dbus'\n";
+            exe: "! ${lib.getExe' pkg exe} --display help | grep -v -e 'Available\\|none\\|dbus'\n";
           mkCheckMachines =
             exe:
             lib.concatMapStrings (
@@ -58,7 +54,7 @@
         in
         pkgs.runCommand "check-${pkg.name}" { } ''
           echo ${pkg.pname}
-          ${lib.concatMapStrings concatChecks executablesPerVariant.${pnameBase}}
+          ${lib.concatMapStrings concatChecks executablesPerVariant.${pkg.pname}}
           mkdir "$out"
         '';
     in
@@ -70,16 +66,6 @@
         qemu-espressif = pkgs.callPackage ./packages/qemu-espressif { };
         qemu-esp32 = pkgs.callPackage ./packages/qemu-espressif { enableEsp32c3 = false; };
         qemu-esp32c3 = pkgs.callPackage ./packages/qemu-espressif { enableEsp32 = false; };
-
-        qemu-espressif-minimal = pkgs.callPackage ./packages/qemu-espressif { minimal = true; };
-        qemu-esp32-minimal = pkgs.callPackage ./packages/qemu-espressif {
-          enableEsp32c3 = false;
-          minimal = true;
-        };
-        qemu-esp32c3-minimal = pkgs.callPackage ./packages/qemu-espressif {
-          enableEsp32 = false;
-          minimal = true;
-        };
       });
 
       # Some simple sanity checks; for a full emulation check, see https://github.com/SFrijters/nix-qemu-esp32c3-rust-example
