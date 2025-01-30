@@ -34,6 +34,15 @@ jobs:
         nix run . -- --version
         nix run . -- --machine help
 
+    - name: Build from overlay without flake
+      run: |
+        NIX_PATH=$NIX_PATH:nixpkgs-overlays=$(pwd)/overlays.nix \
+        nix-build \
+          https://github.com/NixOS/nixpkgs/archive/$(grep rev flake.lock | sed 's/^.*: //' | sed -e 's/"//g' -e 's/,//').tar.gz \
+          --attr qemu-espressif-minimal
+        ./result/bin/qemu-system-xtensa --version
+        ./result/bin/qemu-system-xtensa --machine help
+
     - name: Formatter check
       run: |
         nix fmt
