@@ -12,10 +12,8 @@
   libaio,
   apple-sdk_13,
   darwinMinVersionHook,
-  SDL2,
   enableEsp32 ? true,
   enableEsp32c3 ? true,
-  minimal ? false,
 }:
 
 assert enableEsp32 || enableEsp32c3;
@@ -48,14 +46,9 @@ let
 
   version = "9.0.0-20240606";
 
-  darwinSDK = [
-    apple-sdk_13
-    (darwinMinVersionHook "13")
-  ];
-
   mainProgram = if (!enableEsp32) then "qemu-system-riscv32" else "qemu-system-xtensa";
 
-  qemu' = qemu.override { inherit minimal; };
+  qemu' = qemu.override { minimal = true; };
 in
 
 qemu'.overrideAttrs (oldAttrs: {
@@ -66,7 +59,7 @@ qemu'.overrideAttrs (oldAttrs: {
       "esp32c3"
     else
       "espressif"
-  }${lib.optionalString minimal "-minimal"}";
+  }";
   inherit version;
 
   src = fetchFromGitHub {
@@ -77,19 +70,19 @@ qemu'.overrideAttrs (oldAttrs: {
   };
 
   buildInputs =
-    if minimal then
-      (
-        [
-          glib
-          zlib
-          libgcrypt
-          libslirp
-        ]
-        ++ lib.optionals stdenv.hostPlatform.isLinux [ libaio ]
-        ++ lib.optionals stdenv.hostPlatform.isDarwin darwinSDK
-      )
-    else
-      (oldAttrs.buildInputs ++ [ libgcrypt ] ++ lib.optionals stdenv.hostPlatform.isDarwin [ SDL2 ]);
+    [
+      # dependencies declared in nixpkgs
+      glib
+      zlib
+      libslirp
+      # dependency from the espressif fork
+      libgcrypt
+    ]
+    ++ lib.optionals stdenv.hostPlatform.isLinux [ libaio ]
+    ++ lib.optionals stdenv.hostPlatform.isDarwin [
+      apple-sdk_13
+      (darwinMinVersionHook "13")
+    ];
 
   postPatch =
     oldAttrs.postPatch
@@ -149,9 +142,6 @@ qemu'.overrideAttrs (oldAttrs: {
       "--disable-capstone"
       "--disable-vnc"
       "--disable-gtk"
-    ]
-    ++ lib.optionals (!minimal) [
-      "--enable-sdl"
     ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [
       "--enable-linux-aio"
