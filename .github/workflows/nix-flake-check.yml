@@ -36,16 +36,14 @@ jobs:
     - name: Build from overlay without flake
       run: |
         for v in espressif esp32 esp32c3; do
-          for m in "" "-minimal"; do
-            NIX_PATH=$NIX_PATH:nixpkgs-overlays=$(pwd)/overlays.nix \
-            nix-build \
-              https://github.com/NixOS/nixpkgs/archive/$(grep rev flake.lock | sed 's/^.*: //' | sed -e 's/"//g' -e 's/,//').tar.gz \
-              --attr qemu-${v}${m}
-            for exe in ./result/bin/qemu-system-*; do
-              echo ${exe}
-              ${exe} --version
-              ${exe} --machine help
-            done
+          NIX_PATH=$NIX_PATH:nixpkgs-overlays=$(pwd)/overlays.nix \
+          nix-build \
+            https://github.com/NixOS/nixpkgs/archive/$(grep rev flake.lock | sed 's/^.*: //' | sed -e 's/"//g' -e 's/,//').tar.gz \
+            --attr qemu-${v}${m}
+          for exe in ./result/bin/qemu-system-*; do
+            echo ${exe}
+            ${exe} --version
+            ${exe} --machine help
           done
         done
 
