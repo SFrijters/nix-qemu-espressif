@@ -18,7 +18,6 @@ jobs:
     - uses: cachix/install-nix-action@v30
       with:
         github_access_token: ${{ secrets.GITHUB_TOKEN }}
-    - uses: DeterminateSystems/magic-nix-cache-action@v9
 
     - name: Flake metadata
       run: |
