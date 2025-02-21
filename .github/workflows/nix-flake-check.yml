@@ -3,9 +3,11 @@ on:
   pull_request:
     paths-ignore:
       - 'README.md'
+      - '.gitlab-ci.yml'
   push:
     paths-ignore:
       - 'README.md'
+      - '.gitlab-ci.yml'
 
 jobs:
   nix-flake-check:
