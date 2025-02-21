@@ -25,6 +25,10 @@ flake:
   stage: flake
   script:
     - nix flake check -L
+    # Keep GC roots
+    - nix build .#qemu-espressif -o qemu-espressif
+    - nix build .#qemu-esp32 -o qemu-esp32
+    - nix build .#qemu-esp32c3 -o qemu-esp32c3
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "master"
 
