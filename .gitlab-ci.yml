@@ -1,0 +1,60 @@
+stages:
+  - metadata
+  - flake
+  - noflake
+  - lint
+
+variables:
+  GIT_CLEAN_FLAGS: -ffdx -e gcroots/
+
+flake:
+  timeout: 15,
+  tags:
+    - nix
+  stage: metadata
+  script:
+    - nix flake metadata
+    - nix flake show
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "master"
+
+flake:
+  timeout: 1h
+  tags:
+    - nix
+  stage: flake
+  script:
+    - nix flake check -L
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "master"
+
+noflake:
+  timeout: 1h
+  tags:
+    - nix
+  stage: noflake
+  script: |
+    for v in espressif esp32 esp32c3; do
+      NIX_PATH=$NIX_PATH:nixpkgs-overlays=$(pwd)/overlays.nix \
+      nix-build \
+        https://github.com/NixOS/nixpkgs/archive/$(grep rev flake.lock | sed 's/^.*: //' | sed -e 's/"//g' -e 's/,//').tar.gz \
+          --attr qemu-${v}${m}
+      for exe in ./result/bin/qemu-system-*; do
+        echo ${exe}
+        ${exe} --version
+        ${exe} --machine help
+      done
+    done
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "master"
+
+nixfmt:
+  timeout: 15m
+  tags:
+    - nix
+  stage: lint
+  script:
+    - nix fmt
+    - git diff --exit-code
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "master"
