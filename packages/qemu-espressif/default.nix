@@ -8,12 +8,15 @@
   glib,
   zlib,
   libgcrypt,
-  libslirp,
   libaio,
+  SDL2,
+  gtk3,
   apple-sdk_13,
   darwinMinVersionHook,
   enableEsp32 ? true,
   enableEsp32c3 ? true,
+  enableSDL ? false,
+  enableGTK ? false,
 }:
 
 assert enableEsp32 || enableEsp32c3;
@@ -40,11 +43,19 @@ let
     hash = "sha256-inQAeYlmuiRtZm37xK9ypBltCJ+ycyvIeIYZK8a+RYU=";
   };
 
+  libslirp = fetchFromGitLab {
+    domain = "gitlab.freedesktop.org";
+    owner = "slirp";
+    repo = "libslirp";
+    rev = "26be815b86e8d49add8c9a8b320239b9594ff03d";
+    hash = "sha256-6LX3hupZQeg3tZdY1To5ZtkOXftwgboYul792mhUmds=";
+  };
+
   targets =
     lib.optionals enableEsp32 [ "xtensa-softmmu" ]
     ++ lib.optionals enableEsp32c3 [ "riscv32-softmmu" ];
 
-  version = "9.0.0-20240606";
+  version = "9.2.2-20250228";
 
   mainProgram = if (!enableEsp32) then "qemu-system-riscv32" else "qemu-system-xtensa";
 
@@ -66,7 +77,7 @@ qemu'.overrideAttrs (oldAttrs: {
     owner = "espressif";
     repo = "qemu";
     tag = "esp-develop-${version}";
-    hash = "sha256-6RX7wGv1Lkxw9ZlLDlQ/tlq/V8QbVzcb27NTr2uwePI=";
+    hash = "sha256-PQ0zGyIwtskrlNPXYYm7IIy8ID/VnWONjoNIDCCqNsE=";
   };
 
   buildInputs =
@@ -74,10 +85,12 @@ qemu'.overrideAttrs (oldAttrs: {
       # dependencies declared in nixpkgs
       glib
       zlib
-      libslirp
+      # libslirp - we let Meson handle this to make sure the library is built statically
       # dependency from the espressif fork
       libgcrypt
     ]
+    ++ lib.optionals enableSDL [ SDL2 ]
+    ++ lib.optionals enableGTK [ gtk3 ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [ libaio ]
     ++ lib.optionals stdenv.hostPlatform.isDarwin [
       apple-sdk_13
@@ -87,36 +100,26 @@ qemu'.overrideAttrs (oldAttrs: {
   postPatch =
     oldAttrs.postPatch
     + ''
-      # Correctly detect libgcrypt
-      substituteInPlace meson.build \
-        --replace-fail config-tool pkg-config
-
       # Prefetch Meson subprojects, after checking that the revision that we fetch matches the original
       grep -q "revision = ${keycodemapdb.rev}" subprojects/keycodemapdb.wrap
-      rm subprojects/keycodemapdb.wrap
       ln -s ${keycodemapdb} subprojects/keycodemapdb
 
       grep -q "revision = ${berkeley-softfloat-3.rev}" subprojects/berkeley-softfloat-3.wrap
-      rm subprojects/berkeley-softfloat-3.wrap
       cp -r ${berkeley-softfloat-3} subprojects/berkeley-softfloat-3
       chmod a+w subprojects/berkeley-softfloat-3
       cp subprojects/packagefiles/berkeley-softfloat-3/* subprojects/berkeley-softfloat-3
 
       grep -q "revision = ${berkeley-testfloat-3.rev}" subprojects/berkeley-testfloat-3.wrap
-      rm subprojects/berkeley-testfloat-3.wrap
       cp -r ${berkeley-testfloat-3} subprojects/berkeley-testfloat-3
       chmod a+w subprojects/berkeley-testfloat-3
       cp subprojects/packagefiles/berkeley-testfloat-3/* subprojects/berkeley-testfloat-3
 
+      grep -q "revision = ${libslirp.rev}" subprojects/slirp.wrap
+      ln -s ${libslirp} subprojects/slirp
+
       # Overwrite the supplied version with the nixpkgs version with the date suffix
       echo ${version} > VERSION
     '';
-
-  # This patch in currently locked nixpkgs is for 9.1.0 and doesn't fit on the fork, which is still based on 9.0.0
-  # We use an older version of the patch.
-  patches = (builtins.filter (x: builtins.baseNameOf x != "fix-qemu-ga.patch") oldAttrs.patches) ++ [
-    ./fix-qemu-ga.patch
-  ];
 
   configureFlags =
     [
@@ -141,8 +144,9 @@ qemu'.overrideAttrs (oldAttrs: {
       "--disable-user"
       "--disable-capstone"
       "--disable-vnc"
-      "--disable-gtk"
     ]
+    ++ [ (if enableSDL then "--enable-sdl" else "--disable-sdl") ]
+    ++ [ (if enableGTK then "--enable-gtk" else "--disable-gtk") ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [
       "--enable-linux-aio"
     ];
