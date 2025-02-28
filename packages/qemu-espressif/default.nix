@@ -10,16 +10,19 @@
   libgcrypt,
   libaio,
   SDL2,
+  SDL2_image,
   gtk3,
+  gettext,
+  vte,
   apple-sdk_13,
   darwinMinVersionHook,
-  enableEsp32 ? true,
-  enableEsp32c3 ? true,
-  enableSDL ? false,
-  enableGTK ? false,
+  esp32Support ? true,
+  esp32c3Support ? true,
+  sdlSupport ? false,
+  gtkSupport ? false,
 }:
 
-assert enableEsp32 || enableEsp32c3;
+assert esp32Support || esp32c3Support;
 
 let
   keycodemapdb = fetchFromGitLab {
@@ -52,21 +55,21 @@ let
   };
 
   targets =
-    lib.optionals enableEsp32 [ "xtensa-softmmu" ]
-    ++ lib.optionals enableEsp32c3 [ "riscv32-softmmu" ];
+    lib.optionals esp32Support [ "xtensa-softmmu" ]
+    ++ lib.optionals esp32c3Support [ "riscv32-softmmu" ];
 
   version = "9.2.2-20250228";
 
-  mainProgram = if (!enableEsp32) then "qemu-system-riscv32" else "qemu-system-xtensa";
+  mainProgram = if (!esp32Support) then "qemu-system-riscv32" else "qemu-system-xtensa";
 
   qemu' = qemu.override { minimal = true; };
 in
 
 qemu'.overrideAttrs (oldAttrs: {
   pname = "${oldAttrs.pname}-${
-    if (enableEsp32 && !enableEsp32c3) then
+    if (esp32Support && !esp32c3Support) then
       "esp32"
-    else if (!enableEsp32 && enableEsp32c3) then
+    else if (!esp32Support && esp32c3Support) then
       "esp32c3"
     else
       "espressif"
@@ -89,8 +92,8 @@ qemu'.overrideAttrs (oldAttrs: {
       # dependency from the espressif fork
       libgcrypt
     ]
-    ++ lib.optionals enableSDL [ SDL2 ]
-    ++ lib.optionals enableGTK [ gtk3 ]
+    ++ lib.optionals sdlSupport [ SDL2 SDL2_image ]
+    ++ lib.optionals gtkSupport [ gtk3 gettext vte ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [ libaio ]
     ++ lib.optionals stdenv.hostPlatform.isDarwin [
       apple-sdk_13
@@ -145,8 +148,8 @@ qemu'.overrideAttrs (oldAttrs: {
       "--disable-capstone"
       "--disable-vnc"
     ]
-    ++ [ (if enableSDL then "--enable-sdl" else "--disable-sdl") ]
-    ++ [ (if enableGTK then "--enable-gtk" else "--disable-gtk") ]
+    ++ [ (if sdlSupport then "--enable-sdl" else "--disable-sdl") ]
+    ++ [ (if gtkSupport then "--enable-gtk" else "--disable-gtk") ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [
       "--enable-linux-aio"
     ];

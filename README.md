@@ -10,7 +10,7 @@ Exposed packages:
 * qemu-esp32: Supports only ESP32.
 * qemu-esp32c3: Supports only ESP32C3.
 
-All variants support the `enableSDL` and `enableGTK` options, e.g. `qemu-espressif.override { enableSDL = true; enableGTK = true; }`. They are false by default.
+All variants support the `sdlSupport` and `gtkSupport` options, e.g. `qemu-espressif.override { sdlSupport = true; gtkSupport = true; }`. They are false by default.
 
 The default output of this flake is a nixpkgs overlay that adds these packages.
 

@@ -49,8 +49,8 @@
             exe:
             "${
               lib.getExe' (pkg.override {
-                enableSDL = true;
-                enableGTK = true;
+                sdlSupport = true;
+                gtkSupport = true;
               }) exe
             } --display help | grep -A1 -e 'gtk' | grep 'sdl'\n";
           mkCheckMachines =
@@ -73,8 +73,8 @@
       packages = forAllSystems (pkgs: rec {
         default = qemu-espressif;
         qemu-espressif = pkgs.callPackage ./packages/qemu-espressif { };
-        qemu-esp32 = pkgs.callPackage ./packages/qemu-espressif { enableEsp32c3 = false; };
-        qemu-esp32c3 = pkgs.callPackage ./packages/qemu-espressif { enableEsp32 = false; };
+        qemu-esp32 = pkgs.callPackage ./packages/qemu-espressif { esp32c3Support = false; };
+        qemu-esp32c3 = pkgs.callPackage ./packages/qemu-espressif { esp32Support = false; };
       });
 
       # Some simple sanity checks; for a full emulation check, see https://github.com/SFrijters/nix-qemu-esp32c3-rust-example
