@@ -11,10 +11,14 @@
   libgcrypt,
   libslirp,
   libaio,
+  SDL2,
+  gtk3,
   apple-sdk_13,
   darwinMinVersionHook,
   enableEsp32 ? true,
   enableEsp32c3 ? true,
+  enableSDL ? false,
+  enableGTK ? false,
 }:
 
 assert enableEsp32 || enableEsp32c3;
@@ -79,6 +83,8 @@ qemu'.overrideAttrs (oldAttrs: {
       # dependency from the espressif fork
       libgcrypt
     ]
+    ++ lib.optionals enableSDL [ SDL2 ]
+    ++ lib.optionals enableGTK [ gtk3 ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [ libaio ]
     ++ lib.optionals stdenv.hostPlatform.isDarwin [
       apple-sdk_13
@@ -141,8 +147,9 @@ qemu'.overrideAttrs (oldAttrs: {
       "--disable-user"
       "--disable-capstone"
       "--disable-vnc"
-      "--disable-gtk"
     ]
+    ++ [ (if enableSDL then "--enable-sdl" else "--disable-sdl") ]
+    ++ [ (if enableGTK then "--enable-gtk" else "--disable-gtk") ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [
       "--enable-linux-aio"
     ];

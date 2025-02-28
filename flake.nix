@@ -45,12 +45,14 @@
             exe: "echo ${lib.getExe' pkg exe}\n${lib.getExe' pkg exe} --version | grep '${pkg.version}'\n";
           mkCheckMinimal =
             exe: "! ${lib.getExe' pkg exe} --display help | grep -v -e 'Available\\|none\\|dbus'\n";
+          mkCheckGraphics =
+            exe: "${lib.getExe' (pkg.override { enableSDL = true; enableGTK = true; }) exe} --display help | grep -A1 -e 'gtk' | grep 'sdl'\n";
           mkCheckMachines =
             exe:
             lib.concatMapStrings (
               arch: "${lib.getExe' pkg exe} --machine help | grep '^${arch} '\n"
             ) archPerExecutable.${exe};
-          concatChecks = exe: mkCheckVersion exe + mkCheckMinimal exe + mkCheckMachines exe;
+          concatChecks = exe: mkCheckVersion exe + mkCheckMinimal exe + mkCheckGraphics exe + mkCheckMachines exe;
         in
         pkgs.runCommand "check-${pkg.name}" { } ''
           echo ${pkg.pname}
