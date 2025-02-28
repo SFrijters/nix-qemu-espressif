@@ -23,9 +23,19 @@
       mkCheck =
         system: pkg:
         let
-          pkgs = nixpkgs.legacyPackages.${system};
+          inherit (nixpkgs.legacyPackages.${system}) runCommand;
 
-          executablesPerVariant = {
+          # Variants of qemu with and without graphical support
+          pkgsWithOverrides = {
+            "default" = pkg;
+            "guiSupport" = pkg.override {
+              sdlSupport = true;
+              gtkSupport = true;
+            };
+          };
+
+          # Each variant has one or two relevant executables
+          executableNamesPerVariant = {
             "qemu-espressif" = [
               "qemu-system-xtensa"
               "qemu-system-riscv32"
@@ -33,7 +43,9 @@
             "qemu-esp32" = [ "qemu-system-xtensa" ];
             "qemu-esp32c3" = [ "qemu-system-riscv32" ];
           };
-          archPerExecutable = {
+
+          # And each of these possible executables supports one or two architectures
+          archPerExecutableName = {
             "qemu-system-xtensa" = [
               "esp32"
               "esp32s3"
@@ -41,29 +53,50 @@
             "qemu-system-riscv32" = [ "esp32c3" ];
           };
 
+          # Check that the version is correct (also checked in versionCheckHook, but a bit more cleanly
           mkCheckVersion =
-            exe: "echo ${lib.getExe' pkg exe}\n${lib.getExe' pkg exe} --version | grep '${pkg.version}'\n";
-          mkCheckMinimal =
-            exe: "! ${lib.getExe' pkg exe} --display help | grep -v -e 'Available\\|none\\|dbus'\n";
+            override: exeName:
+            let
+              exe = lib.getExe' pkgsWithOverrides.${override} exeName;
+            in
+            "echo Checking version\necho ${exe}\n${exe} --version | grep '${
+              pkgsWithOverrides.${override}.version
+            }' || (echo ERROR: Did not find expected version; exit 1)\n";
+          # Check that the version without graphical support indeed doesn't report graphical support
+          # and check that the version with graphical support indeed reports graphical support
           mkCheckGraphics =
-            exe:
-            "${
-              lib.getExe' (pkg.override {
-                sdlSupport = true;
-                gtkSupport = true;
-              }) exe
-            } --display help | grep -A1 -e 'gtk' | grep 'sdl'\n";
-          mkCheckMachines =
-            exe:
+            override: exeName:
+            let
+              exe = lib.getExe' pkgsWithOverrides.${override} exeName;
+            in
+            "echo Checking graphics options\n${
+              if (override == "guiSupport") then
+                "${exe} --display help | grep -e 'gtk'\n${exe} --display help | grep -e 'sdl' || (echo ERROR: Did not find expected graphics options; exit 1)\n"
+              else
+                "! ${exe} --display help | grep -e '^[a-z]\\+$' | grep -v -e 'none\\|dbus' || (echo ERROR: Found unexpected graphics options; exit 1)\n"
+            }";
+          # Check if all expected architectures are supported
+          mkCheckArch =
+            override: exeName:
+            let
+              exe = lib.getExe' pkgsWithOverrides.${override} exeName;
+            in
             lib.concatMapStrings (
-              arch: "${lib.getExe' pkg exe} --machine help | grep '^${arch} '\n"
-            ) archPerExecutable.${exe};
-          concatChecks =
-            exe: mkCheckVersion exe + mkCheckMinimal exe + mkCheckGraphics exe + mkCheckMachines exe;
+              arch:
+              "echo Checking machine options\n${exe} --machine help | grep '^${arch} ' || (echo ERROR: Did not find expected architecture; exit 1)\n"
+            ) archPerExecutableName.${exeName};
+          # Concatenate all these commands
+          concatChecks = lib.concatMapStrings (
+            override:
+            lib.concatMapStrings (
+              exeName:
+              mkCheckVersion override exeName + mkCheckGraphics override exeName + mkCheckArch override exeName
+            ) executableNamesPerVariant.${pkgsWithOverrides.${override}.pname}
+          ) (lib.attrNames pkgsWithOverrides);
         in
-        pkgs.runCommand "check-${pkg.name}" { } ''
-          echo ${pkg.pname}
-          ${lib.concatMapStrings concatChecks executablesPerVariant.${pkg.pname}}
+        runCommand "check-${pkg.name}" { } ''
+          echo Checking variant ${pkg.pname}
+          ${concatChecks}
           mkdir "$out"
         '';
     in
