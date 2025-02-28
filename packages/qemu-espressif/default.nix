@@ -44,7 +44,7 @@ let
     lib.optionals enableEsp32 [ "xtensa-softmmu" ]
     ++ lib.optionals enableEsp32c3 [ "riscv32-softmmu" ];
 
-  version = "9.0.0-20240606";
+  version = "9.2.2-20250228";
 
   mainProgram = if (!enableEsp32) then "qemu-system-riscv32" else "qemu-system-xtensa";
 
@@ -66,7 +66,7 @@ qemu'.overrideAttrs (oldAttrs: {
     owner = "espressif";
     repo = "qemu";
     tag = "esp-develop-${version}";
-    hash = "sha256-6RX7wGv1Lkxw9ZlLDlQ/tlq/V8QbVzcb27NTr2uwePI=";
+    hash = "sha256-PQ0zGyIwtskrlNPXYYm7IIy8ID/VnWONjoNIDCCqNsE=";
   };
 
   buildInputs =
