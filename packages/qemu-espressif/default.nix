@@ -3,13 +3,11 @@
   stdenv,
   fetchFromGitLab,
   fetchFromGitHub,
-  fetchpatch,
   versionCheckHook,
   qemu,
   glib,
   zlib,
   libgcrypt,
-  libslirp,
   libaio,
   SDL2,
   gtk3,
@@ -43,6 +41,14 @@ let
     repo = "berkeley-testfloat-3";
     rev = "e7af9751d9f9fd3b47911f51a5cfd08af256a9ab";
     hash = "sha256-inQAeYlmuiRtZm37xK9ypBltCJ+ycyvIeIYZK8a+RYU=";
+  };
+
+  libslirp = fetchFromGitLab {
+    domain = "gitlab.freedesktop.org";
+    owner = "slirp";
+    repo = "libslirp";
+    rev = "26be815b86e8d49add8c9a8b320239b9594ff03d";
+    hash = "sha256-6LX3hupZQeg3tZdY1To5ZtkOXftwgboYul792mhUmds=";
   };
 
   targets =
@@ -79,7 +85,7 @@ qemu'.overrideAttrs (oldAttrs: {
       # dependencies declared in nixpkgs
       glib
       zlib
-      libslirp
+      # libslirp - we let Meson handle this to make sure the library is built statically
       # dependency from the espressif fork
       libgcrypt
     ]
@@ -111,18 +117,12 @@ qemu'.overrideAttrs (oldAttrs: {
       chmod a+w subprojects/berkeley-testfloat-3
       cp subprojects/packagefiles/berkeley-testfloat-3/* subprojects/berkeley-testfloat-3
 
+      grep -q "revision = ${libslirp.rev}" subprojects/slirp.wrap
+      ln -s ${libslirp} subprojects/slirp
+
       # Overwrite the supplied version with the nixpkgs version with the date suffix
       echo ${version} > VERSION
     '';
-
-  # Revert this change to libslirp detection, because it breaks the build
-  patches = oldAttrs.patches or [] ++ [
-    (fetchpatch {
-      url = "https://github.com/espressif/qemu/commit/6f94694789dd4a632940def84eab067bd6880dc5.diff";
-      hash = "sha256-wbT7E0xToPUyEX3rg9AKrbQx2E8SsLdOkdSBT4snwB0=";
-      revert = true;
-    })
-  ];
 
   configureFlags =
     [
