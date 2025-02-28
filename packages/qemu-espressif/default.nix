@@ -87,10 +87,6 @@ qemu'.overrideAttrs (oldAttrs: {
   postPatch =
     oldAttrs.postPatch
     + ''
-      # Correctly detect libgcrypt
-      substituteInPlace meson.build \
-        --replace-fail config-tool pkg-config
-
       # Prefetch Meson subprojects, after checking that the revision that we fetch matches the original
       grep -q "revision = ${keycodemapdb.rev}" subprojects/keycodemapdb.wrap
       rm subprojects/keycodemapdb.wrap
