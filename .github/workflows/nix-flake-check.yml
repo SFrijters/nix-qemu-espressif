@@ -28,7 +28,7 @@ jobs:
 
     - name: Flake check
       run: |
-        nix flake check -L
+        nix flake check -L --max-jobs 1
 
     - name: Run qemu-espressif
       run: |
