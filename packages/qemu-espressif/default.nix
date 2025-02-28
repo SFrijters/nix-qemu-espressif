@@ -3,6 +3,7 @@
   stdenv,
   fetchFromGitLab,
   fetchFromGitHub,
+  fetchpatch,
   versionCheckHook,
   qemu,
   glib,
@@ -107,6 +108,15 @@ qemu'.overrideAttrs (oldAttrs: {
       # Overwrite the supplied version with the nixpkgs version with the date suffix
       echo ${version} > VERSION
     '';
+
+  # Revert this change to libslirp detection, because it breaks the build
+  patches = oldAttrs.patches or [] ++ [
+    (fetchpatch {
+      url = "https://github.com/espressif/qemu/commit/6f94694789dd4a632940def84eab067bd6880dc5.diff";
+      hash = "sha256-wbT7E0xToPUyEX3rg9AKrbQx2E8SsLdOkdSBT4snwB0=";
+      revert = true;
+    })
+  ];
 
   configureFlags =
     [
