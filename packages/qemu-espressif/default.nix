@@ -20,6 +20,8 @@
   esp32c3Support ? true,
   sdlSupport ? false,
   gtkSupport ? false,
+  enableTools ? false,
+  enableDebug ? false,
 }:
 
 assert esp32Support || esp32c3Support;
@@ -92,8 +94,15 @@ qemu'.overrideAttrs (oldAttrs: {
       # dependency from the espressif fork
       libgcrypt
     ]
-    ++ lib.optionals sdlSupport [ SDL2 SDL2_image ]
-    ++ lib.optionals gtkSupport [ gtk3 gettext vte ]
+    ++ lib.optionals sdlSupport [
+      SDL2
+      SDL2_image
+    ]
+    ++ lib.optionals gtkSupport [
+      gtk3
+      gettext
+      vte
+    ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [ libaio ]
     ++ lib.optionals stdenv.hostPlatform.isDarwin [
       apple-sdk_13
@@ -128,7 +137,7 @@ qemu'.overrideAttrs (oldAttrs: {
     [
       # Flags taken from the original nixpkgs expression
       "--disable-strip" # We'll strip ourselves after separating debug info.
-      "--enable-tools"
+      (lib.enableFeature enableTools "tools")
       "--localstatedir=/var"
       "--sysconfdir=/etc"
       "--cross-prefix=${stdenv.cc.targetPrefix}"
@@ -139,17 +148,21 @@ qemu'.overrideAttrs (oldAttrs: {
       "--target-list=${lib.concatStringsSep "," targets}"
       "--enable-gcrypt"
       "--enable-slirp"
+    ]
+    ++ lib.optionals enableDebug [
+      # Do not enable debug by default - amongst other things it spams the build log like crazy
       "--enable-debug"
+    ]
+    ++ [
       # https://github.com/espressif/qemu/issues/77
       # https://github.com/espressif/qemu/issues/84
       # "--enable-sanitizers"
-      "--disable-strip"
       "--disable-user"
       "--disable-capstone"
       "--disable-vnc"
     ]
-    ++ [ (if sdlSupport then "--enable-sdl" else "--disable-sdl") ]
-    ++ [ (if gtkSupport then "--enable-gtk" else "--disable-gtk") ]
+    ++ lib.optionals sdlSupport [ "--enable-sdl" ]
+    ++ lib.optionals gtkSupport [ "--enable-gtk" ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [
       "--enable-linux-aio"
     ];
