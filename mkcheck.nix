@@ -42,7 +42,7 @@ let
       version = pkgsWithOverrides.${override}.version;
     in
     ''
-      echo Checking version for ${override} ${exe}
+      echo "Checking version for ${override} ${exe}"
       ${exe} --version | grep '${version}' || (echo "ERROR: Did not find expected version ${version}"; exit 1)
     '';
 
@@ -54,7 +54,7 @@ let
       exe = lib.getExe' pkgsWithOverrides.${override} exeName;
     in
     ''
-      echo Checking graphics options
+      echo "Checking graphics options"
     ''
     + (
       if (override == "guiSupport") then
@@ -79,10 +79,13 @@ let
     let
       exe = lib.getExe' pkgsWithOverrides.${override} exeName;
     in
-    lib.concatMapStrings (
-      arch:
-      "echo Checking machine options\n${exe} --machine help | grep '^${arch} ' || (echo ERROR: Did not find expected architecture '${arch}'; exit 1)\n"
-    ) archPerExecutableName.${exeName};
+    ''
+      echo "Checking machine options"
+    ''
+    + (lib.concatMapStrings (arch: ''
+
+      ${exe} --machine help | grep '^${arch} ' || (echo "ERROR: Did not find expected architecture '${arch}'"; exit 1)
+    '') archPerExecutableName.${exeName});
 
   # Concatenate all these commands
   concatChecks = lib.concatMapStrings (
@@ -94,7 +97,6 @@ let
   ) (lib.attrNames pkgsWithOverrides);
 in
 runCommand "check-${pkg.name}" { } ''
-  echo Checking variant ${pkg.pname}
   ${concatChecks}
   mkdir "$out"
 ''

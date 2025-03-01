@@ -34,7 +34,7 @@
       checks = forAllSystems (
         pkgs:
         let
-          mkCheck = pkgs.callPackage ./checks.nix { };
+          mkCheck = pkgs.callPackage ./mkcheck.nix { };
           packages = lib.filterAttrs (n: _: n != "default") (self.packages.${pkgs.system});
         in
         lib.mapAttrs (_: pkg: mkCheck pkg) packages
