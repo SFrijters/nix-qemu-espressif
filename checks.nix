@@ -39,10 +39,12 @@ let
     override: exeName:
     let
       exe = lib.getExe' pkgsWithOverrides.${override} exeName;
+      version = pkgsWithOverrides.${override}.version;
     in
-    "echo Checking version\necho ${exe}\n${exe} --version | grep '${
-      pkgsWithOverrides.${override}.version
-    }' || (echo ERROR: Did not find expected version; exit 1)\n";
+    ''
+      echo Checking version for ${override} ${exe}
+      ${exe} --version | grep '${version}' || (echo "ERROR: Did not find expected version ${version}"; exit 1)
+    '';
 
   # Check that the version without graphical support indeed doesn't report graphical support
   # and check that the version with graphical support indeed reports graphical support
@@ -51,12 +53,25 @@ let
     let
       exe = lib.getExe' pkgsWithOverrides.${override} exeName;
     in
-    "echo Checking graphics options\n${
+    ''
+      echo Checking graphics options
+    ''
+    + (
       if (override == "guiSupport") then
-        "${exe} --display help | grep -e 'gtk'\n${exe} --display help | grep -e 'sdl' || (echo ERROR: Did not find expected graphics options; exit 1)\n"
+        (
+          ''
+            ${exe} --display help | grep -e '^gtk' || (echo "ERROR: Did not find expected graphics option 'gtk'"; exit 1)
+            ${exe} --display help | grep -e '^sdl' || (echo "ERROR: Did not find expected graphics option 'sdl'"; exit 1)
+          ''
+          + (lib.optionalString stdenv.hostPlatform.isDarwin) ''
+            ${exe} --display help | grep -e '^cocoa' || (echo "ERROR: Did not find expected graphics option 'cocoa'"; exit 1)
+          ''
+        )
       else
-        "! ${exe} --display help | grep -e '^[a-z]\\+$' | grep -v -e 'none\\|dbus' || (echo ERROR: Found unexpected graphics options; exit 1)\n"
-    }";
+        ''
+          ! ${exe} --display help | grep -e '^[a-z]\\+$' | grep -v -e 'none\\|dbus' || (echo "ERROR: Found unexpected graphics option(s)"; exit 1)
+        ''
+    );
 
   # Check if all expected architectures are supported
   mkCheckArch =
@@ -66,7 +81,7 @@ let
     in
     lib.concatMapStrings (
       arch:
-      "echo Checking machine options\n${exe} --machine help | grep '^${arch} ' || (echo ERROR: Did not find expected architecture; exit 1)\n"
+      "echo Checking machine options\n${exe} --machine help | grep '^${arch} ' || (echo ERROR: Did not find expected architecture '${arch}'; exit 1)\n"
     ) archPerExecutableName.${exeName};
 
   # Concatenate all these commands
