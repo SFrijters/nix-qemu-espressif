@@ -46,6 +46,12 @@ jobs:
             echo ${exe}
             ${exe} --version
             ${exe} --machine help
+            if [ ${exe} = qemu-system-riscv32 ]; then
+              ${exe} --machine help | grep '^esp32c3 ' || (echo ERROR: Did not find expected architecture 'esp32c3'; exit 1)
+            elif [ ${exe} = qemu-system-xtensa ]; then
+              ${exe} --machine help | grep '^esp32 ' || (echo ERROR: Did not find expected architecture 'esp32'; exit 1)
+              ${exe} --machine help | grep '^esp32s3 ' || (echo ERROR: Did not find expected architecture 'esp32s3'; exit 1)
+            fi
           done
         done
 
