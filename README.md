@@ -6,9 +6,15 @@ Packages a variant of the [qemu package in nixpkgs](https://github.com/NixOS/nix
 
 ## Exposed packages
 
-* qemu-espressif: Supports both [ESP32](https://github.com/espressif/esp-toolchain-docs/blob/main/qemu/esp32/README.md) (`"xtensa-softmmu"`) and [ESP32C3](https://github.com/espressif/esp-toolchain-docs/blob/main/qemu/esp32c3/README.md) (`"riscv32-softmmu"`) chips. Note: `nix run` will run `qemu-system-xtensa` by default.
-* qemu-esp32: Supports only ESP32.
-* qemu-esp32c3: Supports only ESP32C3.
+* `qemu-espressif`
+  Supports both
+  * [ESP32](https://github.com/espressif/esp-toolchain-docs/blob/main/qemu/esp32/README.md) and [ESP32S3](https://github.com/espressif/esp-toolchain-docs/blob/main/qemu/esp32s3/README.md)  (`"xtensa-softmmu"`) and
+  * [ESP32C3](https://github.com/espressif/esp-toolchain-docs/blob/main/qemu/esp32c3/README.md) (`"riscv32-softmmu"`) chips.
+  Note: `nix run` will run `qemu-system-xtensa` by default.
+* `qemu-esp32`
+  Supports only ESP32 / ESP32S3.
+* `qemu-esp32c3`
+  Supports only ESP32C3.
 
 ## Exposed options
 
