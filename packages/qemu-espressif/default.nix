@@ -20,6 +20,7 @@
   esp32c3Support ? true,
   sdlSupport ? false,
   gtkSupport ? false,
+  cocoaSupport ? false,
   enableTools ? false,
   enableDebug ? false,
 }:
@@ -65,6 +66,11 @@ let
   mainProgram = if (!esp32Support) then "qemu-system-riscv32" else "qemu-system-xtensa";
 
   qemu' = qemu.override { minimal = true; };
+
+  darwinSDK = [
+    apple-sdk_13
+    (darwinMinVersionHook "13")
+  ];
 in
 
 qemu'.overrideAttrs (oldAttrs: {
@@ -104,10 +110,7 @@ qemu'.overrideAttrs (oldAttrs: {
       vte
     ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [ libaio ]
-    ++ lib.optionals stdenv.hostPlatform.isDarwin [
-      apple-sdk_13
-      (darwinMinVersionHook "13")
-    ];
+    ++ lib.optionals stdenv.hostPlatform.isDarwin [ darwinSDK ];
 
   postPatch =
     oldAttrs.postPatch
@@ -163,6 +166,7 @@ qemu'.overrideAttrs (oldAttrs: {
     ]
     ++ lib.optionals sdlSupport [ "--enable-sdl" ]
     ++ lib.optionals gtkSupport [ "--enable-gtk" ]
+    ++ lib.optionals (!cocoaSupport) [ "--disable-cocoa" ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [
       "--enable-linux-aio"
     ];

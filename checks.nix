@@ -1,5 +1,6 @@
 {
   lib,
+  stdenv,
   runCommand,
 }:
 pkg:
@@ -10,6 +11,7 @@ let
     "guiSupport" = pkg.override {
       sdlSupport = true;
       gtkSupport = true;
+      cocoaSupport = stdenv.hostPlatform.isDarwin;
     };
   };
 

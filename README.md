@@ -14,6 +14,7 @@ Packages a variant of the [qemu package in nixpkgs](https://github.com/NixOS/nix
 
 * `sdlSupport`
 * `gtkSupport`
+* `cocoaSupport` (Darwin only)
 * `enableTools`
 * `enableDebug`
 
