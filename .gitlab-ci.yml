@@ -27,7 +27,7 @@ flake-build:
   script:
     # Keep GC roots
     - mkdir -p gcroots
-    - nix build .#qemu-$VARIANT$GUI -o gcroots/qemu-$VARIANT$GUI
+    - nix build .#qemu-$VARIANT$GUI -o gcroots/qemu-$VARIANT$GUI -L
   parallel:
     matrix:
       - VARIANT: [ espressif, esp32, esp32c3 ]
@@ -51,11 +51,12 @@ noflake-build:
     - nix
   stage: noflake-build
   script: |
+    mkdir -p gcroots
     NIX_PATH=$NIX_PATH:nixpkgs-overlays=$(pwd)/overlays.nix \
     nix-build \
       https://github.com/NixOS/nixpkgs/archive/$(grep rev flake.lock | sed 's/^.*: //' | sed -e 's/"//g' -e 's/,//').tar.gz \
-        --attr qemu-${VARIANT}${GUI}
-    for exe in ./result/bin/qemu-system-*; do
+        --attr qemu-${VARIANT}${GUI} -o gcroots/qemu-$VARIANT$GUI-noflake
+    for exe in ./gcroots/qemu-$VARIANT$GUI-noflake/bin/qemu-system-*; do
       echo ${exe}
       ${exe} --version
       ${exe} --machine help
