@@ -19,7 +19,7 @@ metadata:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "master"
 
-build:
+flake-build:
   timeout: 1h
   tags:
     - nix
@@ -30,12 +30,12 @@ build:
     - nix build .#qemu-$VARIANT$GUI -o gcroots/qemu-$VARIANT$GUI
   parallel:
     matrix:
-      - VARIANT: [ espressif esp32 esp32c3 ]
-      - GUI: [ "", "-gui" ]
+      - VARIANT: [ espressif, esp32, esp32c3 ]
+        GUI: [ "", "-gui" ]
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "master"
 
-check:
+flake-check:
   timeout: 15m
   tags:
     - nix
@@ -45,7 +45,7 @@ check:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "master"
 
-build:
+noflake-build:
   timeout: 1h
   tags:
     - nix
@@ -68,8 +68,8 @@ build:
     done
   parallel:
     matrix:
-      - VARIANT: [ espressif esp32 esp32c3 ]
-      - GUI: [ "", "-gui" ]
+      - VARIANT: [ espressif, esp32, esp32c3 ]
+        GUI: [ "", "-gui" ]
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "master"
 
