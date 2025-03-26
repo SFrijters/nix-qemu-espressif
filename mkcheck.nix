@@ -5,16 +5,6 @@
 }:
 pkg:
 let
-  # Variants of qemu with and without graphical support
-  pkgsWithOverrides = {
-    "default" = pkg;
-    "guiSupport" = pkg.override {
-      sdlSupport = true;
-      gtkSupport = true;
-      cocoaSupport = stdenv.hostPlatform.isDarwin;
-    };
-  };
-
   # Each variant has one or two relevant executables
   executableNamesPerVariant = {
     "qemu-espressif" = [
@@ -36,28 +26,27 @@ let
 
   # Check that the version is correct (also checked in versionCheckHook, but a bit more cleanly
   mkCheckVersion =
-    override: exeName:
+    exeName:
     let
-      exe = lib.getExe' pkgsWithOverrides.${override} exeName;
-      version = pkgsWithOverrides.${override}.version;
+      exe = lib.getExe' pkg exeName;
     in
     ''
-      echo "Checking version for ${override} ${exe}"
-      ${exe} --version | grep '${version}' || (echo "ERROR: Did not find expected version ${version}"; exit 1)
+      echo "Checking version for ${pkg.pname} ${exe}"
+      ${exe} --version | grep '${pkg.version}' || (echo "ERROR: Did not find expected version ${pkg.version}"; exit 1)
     '';
 
   # Check that the version without graphical support indeed doesn't report graphical support
   # and check that the version with graphical support indeed reports graphical support
   mkCheckGraphics =
-    override: exeName:
+    exeName:
     let
-      exe = lib.getExe' pkgsWithOverrides.${override} exeName;
+      exe = lib.getExe' pkg exeName;
     in
     ''
       echo "Checking graphics options"
     ''
     + (
-      if (override == "guiSupport") then
+      if (lib.strings.hasSuffix "gui" pkg.pname) then
         (
           ''
             ${exe} --display help | grep -e '^gtk' || (echo "ERROR: Did not find expected graphics option 'gtk'"; exit 1)
@@ -75,9 +64,9 @@ let
 
   # Check if all expected architectures are supported
   mkCheckArch =
-    override: exeName:
+    exeName:
     let
-      exe = lib.getExe' pkgsWithOverrides.${override} exeName;
+      exe = lib.getExe' pkg exeName;
     in
     ''
       echo "Checking machine options"
@@ -89,14 +78,11 @@ let
 
   # Concatenate all these commands
   concatChecks = lib.concatMapStrings (
-    override:
-    lib.concatMapStrings (
-      exeName:
-      mkCheckVersion override exeName + mkCheckGraphics override exeName + mkCheckArch override exeName
-    ) executableNamesPerVariant.${pkgsWithOverrides.${override}.pname}
-  ) (lib.attrNames pkgsWithOverrides);
+    exeName: mkCheckVersion exeName + mkCheckGraphics exeName + mkCheckArch exeName
+  ) executableNamesPerVariant.${lib.strings.removeSuffix "-gui" pkg.pname};
 in
 runCommand "check-${pkg.name}" { } ''
+  echo ${concatChecks}
   ${concatChecks}
   mkdir "$out"
 ''

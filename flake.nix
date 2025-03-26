@@ -23,19 +23,34 @@
     {
       overlays.default = import ./.;
 
-      packages = forAllSystems (pkgs: rec {
-        default = qemu-espressif;
-        qemu-espressif = pkgs.callPackage ./packages/qemu-espressif { };
-        qemu-esp32 = pkgs.callPackage ./packages/qemu-espressif { esp32c3Support = false; };
-        qemu-esp32c3 = pkgs.callPackage ./packages/qemu-espressif { esp32Support = false; };
-      });
+      packages = forAllSystems (
+        pkgs:
+        let
+          withGui =
+            pkg:
+            pkg.override {
+              sdlSupport = true;
+              gtkSupport = true;
+              cocoaSupport = pkgs.stdenv.isDarwin;
+            };
+        in
+        rec {
+          default = qemu-espressif;
+          qemu-espressif = pkgs.callPackage ./packages/qemu-espressif { };
+          qemu-esp32 = pkgs.callPackage ./packages/qemu-espressif { esp32c3Support = false; };
+          qemu-esp32c3 = pkgs.callPackage ./packages/qemu-espressif { esp32Support = false; };
+          qemu-espressif-gui = withGui qemu-espressif;
+          qemu-esp32-gui = withGui qemu-esp32;
+          qemu-esp32c3-gui = withGui qemu-esp32c3;
+        }
+      );
 
       # Some simple sanity checks; for a full emulation check, see https://github.com/SFrijters/nix-qemu-esp32c3-rust-example
       checks = forAllSystems (
         pkgs:
         let
           mkCheck = pkgs.callPackage ./mkcheck.nix { };
-          packages = lib.filterAttrs (n: _: n != "default") (self.packages.${pkgs.system});
+          packages = lib.filterAttrs (n: _: n != "default") (self.packages.${pkgs.stdenv.system});
         in
         lib.mapAttrs (_: pkg: mkCheck pkg) packages
       );

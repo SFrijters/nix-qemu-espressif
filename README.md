@@ -15,6 +15,8 @@ Packages a variant of the [qemu package in nixpkgs](https://github.com/NixOS/nix
   Supports only ESP32 / ESP32S3.
 * `qemu-esp32c3`
   Supports only ESP32C3.
+* `qemu-espressif-gui`, `qemu-esp32-gui`, `qemu-esp32c3-gui`
+  As above, but with gui support enabled.
 
 ## Exposed options
 
