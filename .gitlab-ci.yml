@@ -1,14 +1,15 @@
 stages:
   - metadata
-  - flake
-  - noflake
+  - flake-build
+  - flake-check
+  - noflake-build
   - lint
 
 variables:
   GIT_CLEAN_FLAGS: -ffdx -e gcroots/
 
-flake:
-  timeout: 15,
+metadata:
+  timeout: 15m
   tags:
     - nix
   stage: metadata
@@ -18,44 +19,57 @@ flake:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "master"
 
-flake:
+build:
   timeout: 1h
   tags:
     - nix
-  stage: flake
+  stage: flake-build
   script:
-    - nix flake check -L
     # Keep GC roots
     - mkdir -p gcroots
-    - nix build .#qemu-espressif -o gcroots/qemu-espressif
-    - nix build .#qemu-esp32 -o gcroots/qemu-esp32
-    - nix build .#qemu-esp32c3 -o gcroots/qemu-esp32c3
+    - nix build .#qemu-$VARIANT$GUI -o gcroots/qemu-$VARIANT$GUI
+  parallel:
+    matrix:
+      - VARIANT: [ espressif esp32 esp32c3 ]
+      - GUI: [ "", "-gui" ]
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "master"
 
-noflake:
+check:
+  timeout: 15m
+  tags:
+    - nix
+  stage: flake-check
+  script:
+    - nix flake check -L
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "master"
+
+build:
   timeout: 1h
   tags:
     - nix
-  stage: noflake
+  stage: noflake-build
   script: |
-    for v in espressif esp32 esp32c3; do
-      NIX_PATH=$NIX_PATH:nixpkgs-overlays=$(pwd)/overlays.nix \
-      nix-build \
-        https://github.com/NixOS/nixpkgs/archive/$(grep rev flake.lock | sed 's/^.*: //' | sed -e 's/"//g' -e 's/,//').tar.gz \
-          --attr qemu-${v}${m}
-      for exe in ./result/bin/qemu-system-*; do
-        echo ${exe}
-        ${exe} --version
-        ${exe} --machine help
-        if [ ${exe} = qemu-system-riscv32 ]; then
-          ${exe} --machine help | grep '^esp32c3 ' || (echo ERROR: Did not find expected architecture 'esp32c3'; exit 1)
-        elif [ ${exe} = qemu-system-xtensa ]; then
-          ${exe} --machine help | grep '^esp32 ' || (echo ERROR: Did not find expected architecture 'esp32'; exit 1)
-          ${exe} --machine help | grep '^esp32s3 ' || (echo ERROR: Did not find expected architecture 'esp32s3'; exit 1)
-        fi
-      done
+    NIX_PATH=$NIX_PATH:nixpkgs-overlays=$(pwd)/overlays.nix \
+    nix-build \
+      https://github.com/NixOS/nixpkgs/archive/$(grep rev flake.lock | sed 's/^.*: //' | sed -e 's/"//g' -e 's/,//').tar.gz \
+        --attr qemu-${VARIANT}${GUI}
+    for exe in ./result/bin/qemu-system-*; do
+      echo ${exe}
+      ${exe} --version
+      ${exe} --machine help
+      if [ ${exe} = qemu-system-riscv32 ]; then
+        ${exe} --machine help | grep '^esp32c3 ' || (echo ERROR: Did not find expected architecture 'esp32c3'; exit 1)
+      elif [ ${exe} = qemu-system-xtensa ]; then
+        ${exe} --machine help | grep '^esp32 ' || (echo ERROR: Did not find expected architecture 'esp32'; exit 1)
+        ${exe} --machine help | grep '^esp32s3 ' || (echo ERROR: Did not find expected architecture 'esp32s3'; exit 1)
+      fi
     done
+  parallel:
+    matrix:
+      - VARIANT: [ espressif esp32 esp32c3 ]
+      - GUI: [ "", "-gui" ]
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "master"
 
