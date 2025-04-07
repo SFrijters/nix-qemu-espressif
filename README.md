@@ -20,13 +20,14 @@ Packages a variant of the [qemu package in nixpkgs](https://github.com/NixOS/nix
 
 ## Exposed options
 
-* `sdlSupport`
-* `gtkSupport`
-* `cocoaSupport` (Darwin only)
-* `enableTools`
-* `enableDebug`
+* `sdlSupport` (default: `false`)
+* `gtkSupport` (default: `false`)
+* `cocoaSupport` (default: `false`, Darwin only)
+* `enableTools` (default: `false`)
+* `enableDebug` (default: `false`)
+* `enableTests` (default: `true`)
 
-These are passed as overrides, e.g. `qemu-espressif.override { sdlSupport = true; enableDebug = true; }`. They are false by default.
+These are passed as overrides, e.g. `qemu-espressif.override { sdlSupport = true; enableDebug = true; }`.
 
 ## Default output
 

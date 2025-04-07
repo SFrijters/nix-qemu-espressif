@@ -23,6 +23,7 @@
   cocoaSupport ? false,
   enableTools ? false,
   enableDebug ? false,
+  enableTests ? true,
 }:
 
 assert esp32Support || esp32c3Support;
@@ -73,111 +74,137 @@ let
   ];
 in
 
-qemu'.overrideAttrs (oldAttrs: {
-  pname = "${oldAttrs.pname}-${
-    if (esp32Support && !esp32c3Support) then
-      "esp32"
-    else if (!esp32Support && esp32c3Support) then
-      "esp32c3"
-    else
-      "espressif"
-  }";
-  inherit version;
+qemu'.overrideAttrs (
+  finalAttrs: oldAttrs: {
+    pname = "${oldAttrs.pname}-${
+      if (esp32Support && !esp32c3Support) then
+        "esp32"
+      else if (!esp32Support && esp32c3Support) then
+        "esp32c3"
+      else
+        "espressif"
+    }";
+    inherit version;
 
-  src = fetchFromGitHub {
-    owner = "espressif";
-    repo = "qemu";
-    tag = "esp-develop-${version}";
-    hash = "sha256-PQ0zGyIwtskrlNPXYYm7IIy8ID/VnWONjoNIDCCqNsE=";
-  };
+    src = fetchFromGitHub {
+      owner = "espressif";
+      repo = "qemu";
+      tag = "esp-develop-${version}";
+      hash = "sha256-PQ0zGyIwtskrlNPXYYm7IIy8ID/VnWONjoNIDCCqNsE=";
+    };
 
-  buildInputs =
-    [
-      # dependencies declared in nixpkgs
-      glib
-      zlib
-      # libslirp - we let Meson handle this to make sure the library is built statically
-      # dependency from the espressif fork
-      libgcrypt
-    ]
-    ++ lib.optionals sdlSupport [
-      SDL2
-      SDL2_image
-    ]
-    ++ lib.optionals gtkSupport [
-      gtk3
-      gettext
-      vte
-    ]
-    ++ lib.optionals stdenv.hostPlatform.isLinux [ libaio ]
-    ++ lib.optionals stdenv.hostPlatform.isDarwin [ darwinSDK ];
+    buildInputs =
+      [
+        # dependencies declared in nixpkgs
+        glib
+        zlib
+        # libslirp - we let Meson handle this to make sure the library is built statically
+        # dependency from the espressif fork
+        libgcrypt
+      ]
+      ++ lib.optionals sdlSupport [
+        SDL2
+        SDL2_image
+      ]
+      ++ lib.optionals gtkSupport [
+        gtk3
+        gettext
+        vte
+      ]
+      ++ lib.optionals stdenv.hostPlatform.isLinux [ libaio ]
+      ++ lib.optionals stdenv.hostPlatform.isDarwin [ darwinSDK ];
 
-  postPatch =
-    oldAttrs.postPatch
-    + ''
-      # Prefetch Meson subprojects, after checking that the revision that we fetch matches the original
-      grep -q "revision = ${keycodemapdb.rev}" subprojects/keycodemapdb.wrap
-      ln -s ${keycodemapdb} subprojects/keycodemapdb
+    postPatch =
+      oldAttrs.postPatch
+      + ''
+        # Prefetch Meson subprojects, after checking that the revision that we fetch matches the original
+        grep -q "revision = ${keycodemapdb.rev}" subprojects/keycodemapdb.wrap
+        ln -s ${keycodemapdb} subprojects/keycodemapdb
 
-      grep -q "revision = ${berkeley-softfloat-3.rev}" subprojects/berkeley-softfloat-3.wrap
-      cp -r ${berkeley-softfloat-3} subprojects/berkeley-softfloat-3
-      chmod a+w subprojects/berkeley-softfloat-3
-      cp subprojects/packagefiles/berkeley-softfloat-3/* subprojects/berkeley-softfloat-3
+        grep -q "revision = ${berkeley-softfloat-3.rev}" subprojects/berkeley-softfloat-3.wrap
+        cp -r ${berkeley-softfloat-3} subprojects/berkeley-softfloat-3
+        chmod a+w subprojects/berkeley-softfloat-3
+        cp subprojects/packagefiles/berkeley-softfloat-3/* subprojects/berkeley-softfloat-3
 
-      grep -q "revision = ${berkeley-testfloat-3.rev}" subprojects/berkeley-testfloat-3.wrap
-      cp -r ${berkeley-testfloat-3} subprojects/berkeley-testfloat-3
-      chmod a+w subprojects/berkeley-testfloat-3
-      cp subprojects/packagefiles/berkeley-testfloat-3/* subprojects/berkeley-testfloat-3
+        grep -q "revision = ${berkeley-testfloat-3.rev}" subprojects/berkeley-testfloat-3.wrap
+        cp -r ${berkeley-testfloat-3} subprojects/berkeley-testfloat-3
+        chmod a+w subprojects/berkeley-testfloat-3
+        cp subprojects/packagefiles/berkeley-testfloat-3/* subprojects/berkeley-testfloat-3
 
-      grep -q "revision = ${libslirp.rev}" subprojects/slirp.wrap
-      ln -s ${libslirp} subprojects/slirp
+        grep -q "revision = ${libslirp.rev}" subprojects/slirp.wrap
+        ln -s ${libslirp} subprojects/slirp
 
-      # Overwrite the supplied version with the nixpkgs version with the date suffix
-      echo ${version} > VERSION
-    '';
+        # Overwrite the supplied version with the nixpkgs version with the date suffix
+        echo ${version} > VERSION
+      ''
+      + (
+        if enableTests then
+          ''
+            substituteInPlace tests/functional/meson.build \
+              --replace-fail "'version'," "" \
+              --replace-fail "'riscv_opensbi'," ""
 
-  configureFlags =
-    [
-      # Flags taken from the original nixpkgs expression
-      "--disable-strip" # We'll strip ourselves after separating debug info.
-      (lib.enableFeature enableTools "tools")
-      "--localstatedir=/var"
-      "--sysconfdir=/etc"
-      "--cross-prefix=${stdenv.cc.targetPrefix}"
+            substituteInPlace tests/qtest/meson.build \
+              --replace-fail "'device-introspect-test'," "" \
+              --replace-fail "'qom-test'," "" \
+              --replace-fail "'test-hmp'," ""
+          ''
+        else
+          ''
+            # Faster build, we don't need these files if we don't have checkPhase
+            rm -rf tests/
+            substituteInPlace meson.build \
+              --replace-fail "subdir('tests/qtest/libqos')" "" \
+              --replace-fail "subdir('tests/qtest/fuzz')" "" \
+              --replace-fail "subdir('tests')" ""
+          ''
+      );
 
-      # Flags taken from the instructions for the Espressif fork
-      # Based on https://github.com/espressif/esp-toolchain-docs/blob/main/qemu/esp32/README.md
-      # Based on https://github.com/espressif/esp-toolchain-docs/tree/main/qemu/esp32c3/README.md
-      "--target-list=${lib.concatStringsSep "," targets}"
-      "--enable-gcrypt"
-      "--enable-slirp"
-    ]
-    ++ lib.optionals enableDebug [
-      # Do not enable debug by default - amongst other things it spams the build log like crazy
-      "--enable-debug"
-    ]
-    ++ [
-      # https://github.com/espressif/qemu/issues/77
-      # https://github.com/espressif/qemu/issues/84
-      # "--enable-sanitizers"
-      "--disable-user"
-      "--disable-capstone"
-      "--disable-vnc"
-    ]
-    ++ lib.optionals sdlSupport [ "--enable-sdl" ]
-    ++ lib.optionals gtkSupport [ "--enable-gtk" ]
-    ++ lib.optionals (!cocoaSupport) [ "--disable-cocoa" ]
-    ++ lib.optionals stdenv.hostPlatform.isLinux [
-      "--enable-linux-aio"
-    ];
+    configureFlags =
+      [
+        # Flags taken from the original nixpkgs expression
+        "--disable-strip" # We'll strip ourselves after separating debug info.
+        (lib.enableFeature enableTools "tools")
+        "--localstatedir=/var"
+        "--sysconfdir=/etc"
+        "--cross-prefix=${stdenv.cc.targetPrefix}"
 
-  nativeInstallCheckInputs = [ versionCheckHook ];
-  doInstallCheck = true;
-  versionCheckProgram = "${builtins.placeholder "out"}/bin/${mainProgram}";
+        # Flags taken from the instructions for the Espressif fork
+        # Based on https://github.com/espressif/esp-toolchain-docs/blob/main/qemu/esp32/README.md
+        # Based on https://github.com/espressif/esp-toolchain-docs/tree/main/qemu/esp32c3/README.md
+        "--target-list=${lib.concatStringsSep "," targets}"
+        "--enable-gcrypt"
+        "--enable-slirp"
+      ]
+      ++ lib.optionals enableDebug [
+        # Do not enable debug by default - amongst other things it spams the build log like crazy
+        "--enable-debug"
+      ]
+      ++ [
+        # https://github.com/espressif/qemu/issues/77
+        # https://github.com/espressif/qemu/issues/84
+        # "--enable-sanitizers"
+        "--disable-user"
+        "--disable-capstone"
+        "--disable-vnc"
+      ]
+      ++ lib.optionals sdlSupport [ "--enable-sdl" ]
+      ++ lib.optionals gtkSupport [ "--enable-gtk" ]
+      ++ lib.optionals (!cocoaSupport) [ "--disable-cocoa" ]
+      ++ lib.optionals stdenv.hostPlatform.isLinux [
+        "--enable-linux-aio"
+      ];
 
-  meta = oldAttrs.meta // {
-    inherit mainProgram;
-    homepage = "https://github.com/espressif/qemu";
-    maintainers = oldAttrs.meta.maintainers ++ [ lib.maintainers.sfrijters ];
-  };
-})
+    doCheck = enableTests;
+
+    nativeInstallCheckInputs = [ versionCheckHook ];
+    doInstallCheck = true;
+    versionCheckProgram = "${builtins.placeholder "out"}/bin/${mainProgram}";
+
+    meta = oldAttrs.meta // {
+      inherit mainProgram;
+      homepage = "https://github.com/espressif/qemu";
+      maintainers = oldAttrs.meta.maintainers ++ [ lib.maintainers.sfrijters ];
+    };
+  }
+)
