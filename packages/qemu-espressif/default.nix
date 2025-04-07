@@ -75,8 +75,8 @@ let
 in
 
 qemu'.overrideAttrs (
-  finalAttrs: oldAttrs: {
-    pname = "${oldAttrs.pname}-${
+  finalAttrs: previousAttrs: {
+    pname = "${previousAttrs.pname}-${
       if (esp32Support && !esp32c3Support) then
         "esp32"
       else if (!esp32Support && esp32c3Support) then
@@ -115,7 +115,7 @@ qemu'.overrideAttrs (
       ++ lib.optionals stdenv.hostPlatform.isDarwin [ darwinSDK ];
 
     postPatch =
-      oldAttrs.postPatch
+      previousAttrs.postPatch
       + ''
         # Prefetch Meson subprojects, after checking that the revision that we fetch matches the original
         grep -q "revision = ${keycodemapdb.rev}" subprojects/keycodemapdb.wrap
@@ -201,10 +201,10 @@ qemu'.overrideAttrs (
     doInstallCheck = true;
     versionCheckProgram = "${builtins.placeholder "out"}/bin/${mainProgram}";
 
-    meta = oldAttrs.meta // {
+    meta = previousAttrs.meta // {
       inherit mainProgram;
       homepage = "https://github.com/espressif/qemu";
-      maintainers = oldAttrs.meta.maintainers ++ [ lib.maintainers.sfrijters ];
+      maintainers = previousAttrs.meta.maintainers ++ [ lib.maintainers.sfrijters ];
     };
   }
 )
