@@ -24,7 +24,7 @@ let
     "qemu-system-riscv32" = [ "esp32c3" ];
   };
 
-  # Check that the version is correct (also checked in versionCheckHook, but a bit more cleanly
+  # Check that the version is correct (also checked in versionCheckHook)
   mkCheckVersion =
     exeName:
     let
