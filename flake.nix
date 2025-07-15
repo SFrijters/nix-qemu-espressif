@@ -69,9 +69,9 @@
           checks =
             let
               mkCheck = pkgs.callPackage ./mkcheck.nix { };
-              packages = lib.filterAttrs (n: _: n != "default") (self.packages.${system});
+              nonDefaultPackages = lib.filterAttrs (n: _: n != "default") (self.packages.${system});
             in
-            lib.mapAttrs (_: pkg: mkCheck pkg) packages;
+            lib.mapAttrs (_: pkg: mkCheck pkg) nonDefaultPackages;
 
           formatter = pkgs.nixfmt-tree;
         }
