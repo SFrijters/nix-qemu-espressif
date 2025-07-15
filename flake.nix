@@ -69,7 +69,7 @@
           checks =
             let
               mkCheck = pkgs.callPackage ./mkcheck.nix { };
-              packages = lib.filterAttrs (n: _: n != "default") (self.packages.${pkgs.stdenv.system});
+              packages = lib.filterAttrs (n: _: n != "default") (self.packages.${system});
             in
             lib.mapAttrs (_: pkg: mkCheck pkg) packages;
 
