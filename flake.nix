@@ -65,6 +65,17 @@
               qemu-esp32c3-gui = withGui qemu-esp32c3;
             };
 
+          devShells =
+            let
+              mkShellWithPackage =
+                pkg:
+                pkgs.mkShellNoCC {
+                  name = pkg.pname;
+                  packages = [ pkg ];
+                };
+            in
+            lib.mapAttrs (_: pkg: mkShellWithPackage pkg) self.packages.${system};
+
           # Some simple sanity checks; for a full emulation check, see https://github.com/SFrijters/nix-qemu-esp32c3-rust-example
           checks =
             let
