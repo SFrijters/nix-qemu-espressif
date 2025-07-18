@@ -69,6 +69,7 @@ let
   # in a C macro, so we fix that particular problem by patching meson.build below.
   # That way we still get the fancy version in the --version check,
   # but we keep the internal MAJOR/MINOR/MICRO versions numerical.
+  # Also: do not make this string too long, see workaround below
   # version = "9.2.2-20250228";
   version = "9.2.2-unstable-2025-06-24";
 
@@ -150,6 +151,12 @@ qemu'.overrideAttrs (
         substituteInPlace meson.build \
           --replace-fail "config_host_data.set('QEMU_VERSION_MICRO', meson.project_version().split('.')[2])" \
                          "config_host_data.set('QEMU_VERSION_MICRO', meson.project_version().split('.')[2].split('-')[0])"
+
+        # Workaround for errors on (macos) GitHub actions runners:
+        # ERROR:../tests/qtest/netdev-socket.c:203:test_stream_unix_reconnect: assertion failed (resp == "st0: index=0,type=stream,listening\r\n"): ("st0: index=0,type=stream,error: UNIX socket path '/private/tmp/nix-build-qemu-esp32-9.2.2-unstable-2025-06-24.drv-0/netdev-socket.Q7TX92/stream_unix_reconnect' is too long\r\n" == "st0: index=0,type=stream,listening\r\n")
+        # We can't really do anything about how nix makes its temp dirs, but we can slightly shrink the final socket name:
+        substituteInPlace tests/qtest/netdev-socket.c \
+          --replace-fail "/stream_unix" "/su"
       ''
       + (
         if enableTests then
