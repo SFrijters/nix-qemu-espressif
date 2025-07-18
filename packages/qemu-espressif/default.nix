@@ -62,7 +62,16 @@ let
     lib.optionals esp32Support [ "xtensa-softmmu" ]
     ++ lib.optionals esp32c3Support [ "riscv32-softmmu" ];
 
-  version = "9.2.2-20250228";
+  # This version number is written into the VERSION file below and
+  # the first components must be x.y.z or the meson.build complains:
+  # ERROR: Index 1 out of bounds of array of size 1.
+  # Any suffix will cause a problem during the build since it will end up
+  # in a C macro, so we fix that particular problem by patching meson.build below.
+  # That way we still get the fancy version in the --version check,
+  # but we keep the internal MAJOR/MINOR/MICRO versions numerical.
+  # Also: do not make this string too long, see workaround below
+  # version = "9.2.2-20250228";
+  version = "9.2.2-unstable-2025-06-24";
 
   mainProgram = if (!esp32Support) then "qemu-system-riscv32" else "qemu-system-xtensa";
 
@@ -89,8 +98,9 @@ qemu'.overrideAttrs (
     src = fetchFromGitHub {
       owner = "espressif";
       repo = "qemu";
-      tag = "esp-develop-${version}";
-      hash = "sha256-PQ0zGyIwtskrlNPXYYm7IIy8ID/VnWONjoNIDCCqNsE=";
+      rev = "c46f68cfd36760d27ea8c5a581c4cdb3165ebd66";
+      # tag = "esp-develop-${version}";
+      hash = "sha256-YcSXEJwxUCfZy5n4rte7R/fKk+OrOutfBf9m8+gXiTg=";
     };
 
     buildInputs =
@@ -136,6 +146,17 @@ qemu'.overrideAttrs (
 
         # Overwrite the supplied version with the nixpkgs version with the date suffix
         echo ${version} > VERSION
+
+        # Prevent fancy custom suffixes from ending up in C macros that are intended to be integers
+        substituteInPlace meson.build \
+          --replace-fail "config_host_data.set('QEMU_VERSION_MICRO', meson.project_version().split('.')[2])" \
+                         "config_host_data.set('QEMU_VERSION_MICRO', meson.project_version().split('.')[2].split('-')[0])"
+
+        # Workaround for errors on (macos) GitHub actions runners:
+        # ERROR:../tests/qtest/netdev-socket.c:203:test_stream_unix_reconnect: assertion failed (resp == "st0: index=0,type=stream,listening\r\n"): ("st0: index=0,type=stream,error: UNIX socket path '/private/tmp/nix-build-qemu-esp32-9.2.2-unstable-2025-06-24.drv-0/netdev-socket.Q7TX92/stream_unix_reconnect' is too long\r\n" == "st0: index=0,type=stream,listening\r\n")
+        # We can't really do anything about how nix makes its temp dirs, but we can slightly shrink the final socket name:
+        substituteInPlace tests/qtest/netdev-socket.c \
+          --replace-fail "/stream_unix" "/su"
       ''
       + (
         if enableTests then
