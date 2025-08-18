@@ -71,7 +71,7 @@ let
   # but we keep the internal MAJOR/MINOR/MICRO versions numerical.
   # Also: do not make this string too long, see workaround below
   # version = "9.2.2-20250228";
-  version = "9.2.2-unstable-2025-06-24";
+  version = "9.2.2-20250817";
 
   mainProgram = if (!esp32Support) then "qemu-system-riscv32" else "qemu-system-xtensa";
 
@@ -98,9 +98,8 @@ qemu'.overrideAttrs (
     src = fetchFromGitHub {
       owner = "espressif";
       repo = "qemu";
-      rev = "c46f68cfd36760d27ea8c5a581c4cdb3165ebd66";
-      # tag = "esp-develop-${version}";
-      hash = "sha256-YcSXEJwxUCfZy5n4rte7R/fKk+OrOutfBf9m8+gXiTg=";
+      tag = "esp-develop-${version}";
+      hash = "sha256-Oc3fBtyd5lzTWK/DjrYXUvN0pmHnooKtT+yPIu+XNsk=";
     };
 
     buildInputs =
