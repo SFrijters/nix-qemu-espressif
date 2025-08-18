@@ -1,4 +1,5 @@
 name: "nix flake check"
+
 on:
   pull_request:
     paths-ignore:
@@ -8,6 +9,9 @@ on:
     paths-ignore:
       - 'README.md'
       - '.gitlab-ci.yml'
+
+env:
+  CLICOLOR_FORCE: 1
 
 jobs:
   nix-flake-check:
@@ -58,5 +62,5 @@ jobs:
 
     - name: Formatter check
       run: |
-        nix fmt
-        git diff --exit-code
+        nix fmt -- --version
+        nix fmt -- -vv --tree-root-file flake.nix --ci

@@ -7,6 +7,7 @@ stages:
 
 variables:
   GIT_CLEAN_FLAGS: -ffdx -e gcroots/
+  CLICOLOR_FORCE: 1
 
 metadata:
   timeout: 15m
@@ -80,7 +81,7 @@ nixfmt:
     - nix
   stage: lint
   script:
-    - nix fmt
-    - git diff --exit-code
+    - nix fmt -- --version
+    - nix fmt -- -vv --tree-root-file flake.nix --ci
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "master"
