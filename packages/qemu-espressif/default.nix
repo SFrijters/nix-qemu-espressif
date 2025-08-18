@@ -212,6 +212,8 @@ qemu'.overrideAttrs (
       "--disable-user"
       "--disable-capstone"
       "--disable-vnc"
+      "--disable-oss"
+      "--disable-slirp-smbd"
     ]
     ++ lib.optionals sdlSupport [ "--enable-sdl" ]
     ++ lib.optionals gtkSupport [ "--enable-gtk" ]
