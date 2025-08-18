@@ -69,6 +69,10 @@ jobs:
           done
         done
 
+    - name: Build debug build
+      run: |
+        nix build --impure --expr '(builtins.getFlake (toString ./.)).outputs.packages.x86_64-linux.default.override { enableDebug = true; }' -o gcroots/qemu-debug -L
+
     - name: Formatter check
       run: |
         nix fmt -- --version

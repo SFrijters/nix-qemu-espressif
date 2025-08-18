@@ -3,6 +3,7 @@ stages:
   - flake-build
   - flake-check
   - noflake-build
+  - debug-build
   - lint
 
 variables:
@@ -72,6 +73,16 @@ noflake-build:
     matrix:
       - VARIANT: [ espressif, esp32, esp32c3 ]
         GUI: [ "", "-gui" ]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "master"
+
+debug-build:
+  timeout: 1h
+  tags:
+    - nix
+  stage: debug-build
+  script:
+    - nix build --impure --expr '(builtins.getFlake (toString ./.)).outputs.packages.x86_64-linux.default.override { enableDebug = true; }' -o gcroots/qemu-debug -L
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "master"
 
