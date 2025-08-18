@@ -125,7 +125,7 @@ qemu'.overrideAttrs (
     ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [ libaio ]
     ++ lib.optionals stdenv.hostPlatform.isDarwin [ darwinSDK ]
-    ++ lib.optionals enableDebug [ valgrind-light ];
+    ++ lib.optionals (enableDebug && stdenv.hostPlatform.isLinux) [ valgrind-light ];
 
     postPatch =
       previousAttrs.postPatch
