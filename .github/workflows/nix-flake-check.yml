@@ -12,6 +12,15 @@ on:
 
 env:
   CLICOLOR_FORCE: 1
+  # This is yet another workaround for socket paths that are too long in the test suite, e.g.
+  # /nix/var/nix/builds/nix-build-qemu-esp32-9.2.2-20250817.drv-4988-2517995168/netdev-socket.VCDKB3/su_reconnect
+  # where 'su' is already shortened from 'stream_unix' via a substitution in the build.
+  #
+  # Before nix v2.30, this was
+  # /private/tmp/nix-build-qemu-esp32-9.2.2-unstable-2025-06-24.drv-0/netdev-socket.Q7TX92/stream_unix_reconnect
+  # The new default from nix v2.30 onwards is $NIX_STATE_DIR/builds,
+  # i.e. /nix/var/nix/builds . Just shrink that path by using /private/tmp again.
+  NIX_CONFIG: "build-dir = /private/tmp"
 
 jobs:
   nix-flake-check:
