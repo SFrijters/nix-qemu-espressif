@@ -64,13 +64,16 @@ let
 
   # This version number is written into the VERSION file below and
   # the first components must be x.y.z or the meson.build complains:
-  # ERROR: Index 1 out of bounds of array of size 1.
-  # Any suffix will cause a problem during the build since it will end up
+  # "ERROR: Index 1 out of bounds of array of size 1."
+  #
+  # Any suffix to that will cause a problem during the build since it will end up
   # in a C macro, so we fix that particular problem by patching meson.build below.
+  #
   # That way we still get the fancy version in the --version check,
   # but we keep the internal MAJOR/MINOR/MICRO versions numerical.
-  # Also: do not make this string too long, see workaround below
-  # version = "9.2.2-20250228";
+  #
+  # Also: do not make this string too long in general or it will break
+  # on macos GitHub runners, see workaround below.
   version = "9.2.2-20250817";
 
   mainProgram = if (!esp32Support) then "qemu-system-riscv32" else "qemu-system-xtensa";
