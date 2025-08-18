@@ -105,26 +105,25 @@ qemu'.overrideAttrs (
       hash = "sha256-Oc3fBtyd5lzTWK/DjrYXUvN0pmHnooKtT+yPIu+XNsk=";
     };
 
-    buildInputs =
-      [
-        # dependencies declared in nixpkgs
-        glib
-        zlib
-        # libslirp - we let Meson handle this to make sure the library is built statically
-        # dependency from the espressif fork
-        libgcrypt
-      ]
-      ++ lib.optionals sdlSupport [
-        SDL2
-        SDL2_image
-      ]
-      ++ lib.optionals gtkSupport [
-        gtk3
-        gettext
-        vte
-      ]
-      ++ lib.optionals stdenv.hostPlatform.isLinux [ libaio ]
-      ++ lib.optionals stdenv.hostPlatform.isDarwin [ darwinSDK ];
+    buildInputs = [
+      # dependencies declared in nixpkgs
+      glib
+      zlib
+      # libslirp - we let Meson handle this to make sure the library is built statically
+      # dependency from the espressif fork
+      libgcrypt
+    ]
+    ++ lib.optionals sdlSupport [
+      SDL2
+      SDL2_image
+    ]
+    ++ lib.optionals gtkSupport [
+      gtk3
+      gettext
+      vte
+    ]
+    ++ lib.optionals stdenv.hostPlatform.isLinux [ libaio ]
+    ++ lib.optionals stdenv.hostPlatform.isDarwin [ darwinSDK ];
 
     postPatch =
       previousAttrs.postPatch
@@ -185,40 +184,39 @@ qemu'.overrideAttrs (
           ''
       );
 
-    configureFlags =
-      [
-        # Flags taken from the original nixpkgs expression
-        "--disable-strip" # We'll strip ourselves after separating debug info.
-        (lib.enableFeature enableTools "tools")
-        "--localstatedir=/var"
-        "--sysconfdir=/etc"
-        "--cross-prefix=${stdenv.cc.targetPrefix}"
+    configureFlags = [
+      # Flags taken from the original nixpkgs expression
+      "--disable-strip" # We'll strip ourselves after separating debug info.
+      (lib.enableFeature enableTools "tools")
+      "--localstatedir=/var"
+      "--sysconfdir=/etc"
+      "--cross-prefix=${stdenv.cc.targetPrefix}"
 
-        # Flags taken from the instructions for the Espressif fork
-        # Based on https://github.com/espressif/esp-toolchain-docs/blob/main/qemu/esp32/README.md
-        # Based on https://github.com/espressif/esp-toolchain-docs/tree/main/qemu/esp32c3/README.md
-        "--target-list=${lib.concatStringsSep "," targets}"
-        "--enable-gcrypt"
-        "--enable-slirp"
-      ]
-      ++ lib.optionals enableDebug [
-        # Do not enable debug by default - amongst other things it spams the build log like crazy
-        "--enable-debug"
-      ]
-      ++ [
-        # https://github.com/espressif/qemu/issues/77
-        # https://github.com/espressif/qemu/issues/84
-        # "--enable-sanitizers"
-        "--disable-user"
-        "--disable-capstone"
-        "--disable-vnc"
-      ]
-      ++ lib.optionals sdlSupport [ "--enable-sdl" ]
-      ++ lib.optionals gtkSupport [ "--enable-gtk" ]
-      ++ lib.optionals (!cocoaSupport) [ "--disable-cocoa" ]
-      ++ lib.optionals stdenv.hostPlatform.isLinux [
-        "--enable-linux-aio"
-      ];
+      # Flags taken from the instructions for the Espressif fork
+      # Based on https://github.com/espressif/esp-toolchain-docs/blob/main/qemu/esp32/README.md
+      # Based on https://github.com/espressif/esp-toolchain-docs/tree/main/qemu/esp32c3/README.md
+      "--target-list=${lib.concatStringsSep "," targets}"
+      "--enable-gcrypt"
+      "--enable-slirp"
+    ]
+    ++ lib.optionals enableDebug [
+      # Do not enable debug by default - amongst other things it spams the build log like crazy
+      "--enable-debug"
+    ]
+    ++ [
+      # https://github.com/espressif/qemu/issues/77
+      # https://github.com/espressif/qemu/issues/84
+      # "--enable-sanitizers"
+      "--disable-user"
+      "--disable-capstone"
+      "--disable-vnc"
+    ]
+    ++ lib.optionals sdlSupport [ "--enable-sdl" ]
+    ++ lib.optionals gtkSupport [ "--enable-gtk" ]
+    ++ lib.optionals (!cocoaSupport) [ "--disable-cocoa" ]
+    ++ lib.optionals stdenv.hostPlatform.isLinux [
+      "--enable-linux-aio"
+    ];
 
     doCheck = enableTests;
 
