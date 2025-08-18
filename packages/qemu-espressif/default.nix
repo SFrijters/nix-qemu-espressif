@@ -15,6 +15,7 @@
   gettext,
   vte,
   apple-sdk_13,
+  valgrind-light,
   darwinMinVersionHook,
   esp32Support ? true,
   esp32c3Support ? true,
@@ -123,7 +124,8 @@ qemu'.overrideAttrs (
       vte
     ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [ libaio ]
-    ++ lib.optionals stdenv.hostPlatform.isDarwin [ darwinSDK ];
+    ++ lib.optionals stdenv.hostPlatform.isDarwin [ darwinSDK ]
+    ++ lib.optionals enableDebug [ valgrind-light ];
 
     postPatch =
       previousAttrs.postPatch
