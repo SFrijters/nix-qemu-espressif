@@ -16,6 +16,7 @@
   vte,
   apple-sdk_13,
   valgrind-light,
+  python3Packages,
   darwinMinVersionHook,
   esp32Support ? true,
   esp32c3Support ? true,
@@ -105,6 +106,17 @@ qemu'.overrideAttrs (
       tag = "esp-develop-${version}";
       hash = "sha256-Oc3fBtyd5lzTWK/DjrYXUvN0pmHnooKtT+yPIu+XNsk=";
     };
+
+    # Work around https://github.com/NixOS/nixpkgs/commit/e651d115d5f2a6d37661578370993d345d97c71c
+    # This breaks the build because it somehow pulls in an older version of Meson.
+    # The underlying issue https://gitlab.com/qemu-project/qemu/-/issues/3062 is fixed in the original qemu but not yet released,
+    # however, qemu-espressif already has the patch in place in the latest release, so we can just undo the change in nixpkgs.
+    # TODO: make a PR to remove the workaround in nixpkgs when 10.1 is packaged.
+    nativeBuildInputs =
+      (builtins.filter (
+        p: (p.name or "") != "${python3Packages.python.name}-env"
+      ) previousAttrs.nativeBuildInputs)
+      ++ [ python3Packages.python ];
 
     buildInputs = [
       # dependencies declared in nixpkgs
