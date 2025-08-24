@@ -183,6 +183,7 @@ qemu'.overrideAttrs (
               --replace-fail "subdir('tests/qtest/libqos')" "" \
               --replace-fail "subdir('tests/qtest/fuzz')" "" \
               --replace-fail "subdir('tests')" ""
+            rm -rf docs/devel/testing/
           ''
       );
 
