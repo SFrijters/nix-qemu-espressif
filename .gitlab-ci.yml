@@ -82,7 +82,7 @@ debug-build:
     - nix
   stage: debug-build
   script:
-    - nix build --impure --expr "(builtins.getFlake (toString ./.)).outputs.packages.$(nix config show system).default.override { enableDebug = true; }" -o gcroots/qemu-debug -L
+    - nix build --impure --expr '(builtins.getFlake (toString ./.)).outputs.packages.${builtins.currentSystem}.default.override { enableDebug = true; }' -o gcroots/qemu-debug -L
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "master"
 
