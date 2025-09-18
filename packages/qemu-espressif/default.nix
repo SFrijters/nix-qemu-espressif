@@ -99,7 +99,7 @@ qemu'.overrideAttrs (
     }";
     inherit version;
 
-    __structuredAttrs = !stdenv.hostPlatform.isDarwin; # TODO: Why doesn't this work on Darwin?
+    __structuredAttrs = true;
     strictDeps = true;
 
     src = fetchFromGitHub {
@@ -127,7 +127,7 @@ qemu'.overrideAttrs (
       vte
     ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [ libaio ]
-    ++ lib.optionals stdenv.hostPlatform.isDarwin [ darwinSDK ]
+    ++ lib.optionals stdenv.hostPlatform.isDarwin darwinSDK
     ++ lib.optionals (enableDebug && stdenv.hostPlatform.isLinux) [ valgrind-light ];
 
     postPatch =
