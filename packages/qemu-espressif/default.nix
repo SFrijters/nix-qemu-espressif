@@ -207,6 +207,7 @@ qemu'.overrideAttrs (
     ]
     ++ lib.optionals enableDebug [
       # Do not enable debug by default - amongst other things it spams the build log like crazy
+      # The flag --disable-debug is not accepted, so we can't use lib.enableFeature here
       "--enable-debug"
     ]
     ++ [
@@ -219,9 +220,15 @@ qemu'.overrideAttrs (
       "--disable-oss"
       "--disable-slirp-smbd"
     ]
-    ++ lib.optionals sdlSupport [ "--enable-sdl" ]
-    ++ lib.optionals gtkSupport [ "--enable-gtk" ]
-    ++ lib.optionals (!cocoaSupport) [ "--disable-cocoa" ]
+    ++ lib.optionals sdlSupport [
+      "--enable-sdl"
+    ]
+    ++ lib.optionals gtkSupport [
+      "--enable-gtk"
+    ]
+    ++ lib.optionals (!cocoaSupport) [
+      "--disable-cocoa"
+    ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [
       "--enable-linux-aio"
     ];
