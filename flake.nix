@@ -20,7 +20,7 @@
       # Inject a system attribute if the attribute is not one of the above
       injectSystem =
         system:
-        lib.mapAttrs (name: value: if builtins.elem name flatAttrs then value else { ${system} = value; });
+        lib.mapAttrs (name: value: if lib.elem name flatAttrs then value else { ${system} = value; });
       # Combine the above for a list of 'systems'
       forSystems =
         systems: f:
