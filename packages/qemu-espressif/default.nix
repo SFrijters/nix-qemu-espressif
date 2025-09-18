@@ -99,7 +99,7 @@ qemu'.overrideAttrs (
     }";
     inherit version;
 
-    __structuredAttrs = true;
+    __structuredAttrs = !stdenv.hostPlatform.isDarwin; # TODO: Why doesn't this work on Darwin?
     strictDeps = true;
 
     src = fetchFromGitHub {
