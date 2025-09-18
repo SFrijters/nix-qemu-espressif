@@ -99,6 +99,9 @@ qemu'.overrideAttrs (
     }";
     inherit version;
 
+    __structuredAttrs = true;
+    strictDeps = true;
+
     src = fetchFromGitHub {
       owner = "espressif";
       repo = "qemu";
