@@ -163,6 +163,7 @@ qemu'.overrideAttrs (
         # ("st0: index=0,type=stream,error: UNIX socket path '/private/tmp/nix-build-qemu-esp32-9.2.2-unstable-2025-06-24.drv-0/netdev-socket.Q7TX92/stream_unix_reconnect'
         #  is too long\r\n" == "st0: index=0,type=stream,listening\r\n")
         # We can't really do anything about how nix makes its temp dirs, but we can slightly shrink the final socket name(s):
+        # TODO: Remove this when nix 2.32 is available: https://github.com/NixOS/nix/pull/13839
         substituteInPlace tests/qtest/netdev-socket.c \
           --replace-fail "/stream_unix" "/su"
       ''

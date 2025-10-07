@@ -20,6 +20,8 @@ env:
   # /private/tmp/nix-build-qemu-esp32-9.2.2-unstable-2025-06-24.drv-0/netdev-socket.Q7TX92/stream_unix_reconnect
   # The new default from nix v2.30 onwards is $NIX_STATE_DIR/builds,
   # i.e. /nix/var/nix/builds . Just shrink that path by using /nix/b .
+  #
+  # TODO: Remove this after nix v2.32: https://github.com/NixOS/nix/pull/13839
   NIX_CONFIG: "build-dir = /nix/b"
 
 jobs:
