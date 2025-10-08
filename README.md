@@ -33,6 +33,11 @@ These are passed as overrides, e.g. `qemu-espressif.override { sdlSupport = true
 
 The default output of this flake is a nixpkgs overlay that adds these packages.
 
+## License
+
+* The Nix code, its documentation and supporting files provided in this repository are subject to the MIT license ([LICENSE](LICENSE) or [http://opensource.org/licenses/MIT](http://opensource.org/licenses/MIT))
+* QEMU as a whole is released under the GNU General Public License, version 2. For full licensing details, consult their [LICENSE file](https://github.com/espressif/qemu/blob/esp-develop-9.2.2-20250817/LICENSE) for the packaged version.
+
 ## Addenda
 
 *Note*: this flake uses the internals of the nixpkgs derivation for qemu, so it is potentially rather fragile and it is not recommended to make the nixpkgs input of this flake follow another.
