@@ -73,8 +73,7 @@ let
   # That way we still get the fancy version in the --version check,
   # but we keep the internal MAJOR/MINOR/MICRO versions numerical.
   #
-  # Also: do not make this string too long in general or it will break
-  # on macos GitHub runners, see workaround below.
+  # Also: do not make this string too long in general or it will break on macos GitHub runners
   version = "9.2.2-20250817";
 
   mainProgram = if (!esp32Support) then "qemu-system-riscv32" else "qemu-system-xtensa";
@@ -157,15 +156,6 @@ qemu'.overrideAttrs (
         substituteInPlace meson.build \
           --replace-fail "config_host_data.set('QEMU_VERSION_MICRO', meson.project_version().split('.')[2])" \
                          "config_host_data.set('QEMU_VERSION_MICRO', meson.project_version().split('.')[2].split('-')[0])"
-
-        # Workaround for errors on (macos) GitHub actions runners:
-        # ERROR:../tests/qtest/netdev-socket.c:203:test_stream_unix_reconnect: assertion failed (resp == "st0: index=0,type=stream,listening\r\n"):
-        # ("st0: index=0,type=stream,error: UNIX socket path '/private/tmp/nix-build-qemu-esp32-9.2.2-unstable-2025-06-24.drv-0/netdev-socket.Q7TX92/stream_unix_reconnect'
-        #  is too long\r\n" == "st0: index=0,type=stream,listening\r\n")
-        # We can't really do anything about how nix makes its temp dirs, but we can slightly shrink the final socket name(s):
-        # TODO: Remove this when nix 2.32 is available: https://github.com/NixOS/nix/pull/13839
-        substituteInPlace tests/qtest/netdev-socket.c \
-          --replace-fail "/stream_unix" "/su"
       ''
       + (
         if enableTests then
