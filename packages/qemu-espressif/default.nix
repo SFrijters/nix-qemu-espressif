@@ -14,9 +14,7 @@
   gtk3,
   gettext,
   vte,
-  apple-sdk_13,
   valgrind-light,
-  darwinMinVersionHook,
   esp32Support ? true,
   esp32c3Support ? true,
   sdlSupport ? false,
@@ -79,11 +77,6 @@ let
   mainProgram = if (!esp32Support) then "qemu-system-riscv32" else "qemu-system-xtensa";
 
   qemu' = qemu.override { minimal = true; };
-
-  darwinSDK = [
-    apple-sdk_13
-    (darwinMinVersionHook "13")
-  ];
 in
 
 qemu'.overrideAttrs (
@@ -126,7 +119,6 @@ qemu'.overrideAttrs (
       vte
     ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [ libaio ]
-    ++ lib.optionals stdenv.hostPlatform.isDarwin darwinSDK
     ++ lib.optionals (enableDebug && stdenv.hostPlatform.isLinux) [ valgrind-light ];
 
     postPatch =
