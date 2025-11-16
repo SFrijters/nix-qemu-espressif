@@ -14,9 +14,7 @@
   gtk3,
   gettext,
   vte,
-  apple-sdk_13,
   valgrind-light,
-  darwinMinVersionHook,
   esp32Support ? true,
   esp32c3Support ? true,
   sdlSupport ? false,
@@ -79,11 +77,6 @@ let
   mainProgram = if (!esp32Support) then "qemu-system-riscv32" else "qemu-system-xtensa";
 
   qemu' = qemu.override { minimal = true; };
-
-  darwinSDK = [
-    apple-sdk_13
-    (darwinMinVersionHook "13")
-  ];
 in
 
 qemu'.overrideAttrs (
@@ -126,7 +119,6 @@ qemu'.overrideAttrs (
       vte
     ]
     ++ lib.optionals stdenv.hostPlatform.isLinux [ libaio ]
-    ++ lib.optionals stdenv.hostPlatform.isDarwin darwinSDK
     ++ lib.optionals (enableDebug && stdenv.hostPlatform.isLinux) [ valgrind-light ];
 
     postPatch =
@@ -225,6 +217,19 @@ qemu'.overrideAttrs (
     ];
 
     doCheck = enableTests;
+
+    # Skip flaky tests on Darwin
+    preCheck =
+      previousAttrs.preCheck
+      + lib.optionalString stdenv.hostPlatform.isDarwin ''
+        # ERROR:../tests/unit/test-io-task.c:207:test_task_thread_complete: assertion failed: (data.worker != self)
+        substituteInPlace ../tests/unit/meson.build \
+          --replace-fail "'test-io-task'" "#'test-io-task'"
+        # qemu-system-riscv32: -netdev dgram,id=st0,local.type=inet,local.host=127.0.0.1,local.port=49545,remote.type=inet,remote.host=127.0.0.1,remote.port=49544:
+        # can't bind ip=127.0.0.1 to socket: Address already in use
+        substituteInPlace ../tests/qtest/meson.build \
+          --replace-fail "'netdev-socket'" "#'netdev-socket'"
+      '';
 
     nativeInstallCheckInputs = [ versionCheckHook ];
     doInstallCheck = true;
