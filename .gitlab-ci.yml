@@ -56,6 +56,7 @@ noflake-build:
     mkdir -p gcroots
     NIX_PATH=$NIX_PATH:nixpkgs-overlays=$(pwd)/overlays.nix \
     nix-build \
+      --option allow-import-from-derivation true --option pure-eval false \
       https://github.com/NixOS/nixpkgs/archive/$(grep rev flake.lock | sed 's/^.*: //' | sed -e 's/"//g' -e 's/,//').tar.gz \
         --attr qemu-${VARIANT}${GUI} -o gcroots/qemu-$VARIANT$GUI-noflake
     for exe in ./gcroots/qemu-$VARIANT$GUI-noflake/bin/qemu-system-*; do
