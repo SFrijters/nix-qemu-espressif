@@ -2,7 +2,7 @@
 
 [![GitHub CI](https://github.com/SFrijters/nix-qemu-espressif/actions/workflows/nix-flake-check.yml/badge.svg)](https://github.com/SFrijters/nix-qemu-espressif/actions/workflows/nix-flake-check.yml) [![GitLab CI](https://gitlab.com/SFrijters/nix-qemu-espressif/badges/master/pipeline.svg?key_text=GitLab+CI)](https://gitlab.com/SFrijters/nix-qemu-espressif/-/commits/master)
 
-Packages a variant of the [qemu package in nixpkgs](https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/virtualization/qemu/default.nix) with support for ESP32/ESP32C3 chips, using [Espressif's fork of qemu](https://github.com/espressif/qemu). Current version: [9.2.2-20250817](https://github.com/espressif/qemu/releases/tag/esp-develop-9.2.2-20250817).
+Packages a variant of the [qemu package in nixpkgs](https://github.com/NixOS/nixpkgs/blob/4fc4ba9fab078b1b4170af748c59fcfa02d9699b/pkgs/by-name/qe/qemu/package.nix) with support for ESP32/ESP32C3 chips, using [Espressif's fork of qemu](https://github.com/espressif/qemu). Current version: [9.2.2-20260417](https://github.com/espressif/qemu/releases/tag/esp-develop-9.2.2-20260417).
 
 ## Exposed packages
 
