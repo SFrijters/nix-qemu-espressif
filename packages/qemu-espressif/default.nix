@@ -72,7 +72,7 @@ let
   # but we keep the internal MAJOR/MINOR/MICRO versions numerical.
   #
   # Also: do not make this string too long in general or it will break on macos GitHub runners
-  version = "9.2.2-20250817";
+  version = "9.2.2-20260417";
 
   mainProgram = if (!esp32Support) then "qemu-system-riscv32" else "qemu-system-xtensa";
 
@@ -98,7 +98,7 @@ qemu'.overrideAttrs (
       owner = "espressif";
       repo = "qemu";
       tag = "esp-develop-${version}";
-      hash = "sha256-Oc3fBtyd5lzTWK/DjrYXUvN0pmHnooKtT+yPIu+XNsk=";
+      hash = "sha256-Ts7bpags6Srt3cX2l5LfBE5nPzwpXIe9UYXKBmJ+flw=";
     };
 
     buildInputs = [
