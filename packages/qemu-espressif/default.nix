@@ -156,6 +156,12 @@ qemu'.overrideAttrs (
               --replace-fail "'version'," "" \
               --replace-fail "'riscv_opensbi'," ""
 
+            # Uses asyncio in a legacy way and no longer works for python 3.14
+            # Upstream has an updated qmp module so this should be restored after
+            # espressif has picked it up.
+            substituteInPlace tests/functional/meson.build \
+              --replace-fail "'info_usernet'," ""
+
             substituteInPlace tests/qtest/meson.build \
               --replace-fail "'device-introspect-test'," "" \
               --replace-fail "'qom-test'," "" \
