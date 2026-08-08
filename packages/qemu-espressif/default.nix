@@ -101,6 +101,10 @@ qemu'.overrideAttrs (
       hash = "sha256-Ts7bpags6Srt3cX2l5LfBE5nPzwpXIe9UYXKBmJ+flw=";
     };
 
+    # This patch in currently locked nixpkgs is for a newer version of qemu
+    # than the base of this fork, so filter it out.
+    patches = builtins.filter (x: builtins.baseNameOf x != "fix-tls-tests-without-tasn1.patch") previousAttrs.patches;
+
     buildInputs = [
       # dependencies declared in nixpkgs
       glib
