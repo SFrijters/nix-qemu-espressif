@@ -184,6 +184,7 @@ qemu'.overrideAttrs (
               --replace-fail "subdir('tests/qtest/libqos')" "" \
               --replace-fail "subdir('tests/qtest/fuzz')" "" \
               --replace-fail "subdir('tests')" ""
+            sed -i 's|include $(SRC_PATH)/tests.*||' Makefile
             rm -rf docs/devel/testing/
           ''
       );
