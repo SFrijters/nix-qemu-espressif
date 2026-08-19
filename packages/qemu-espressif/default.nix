@@ -94,6 +94,9 @@ qemu'.overrideAttrs (
     __structuredAttrs = true;
     strictDeps = true;
 
+    # Remove after https://github.com/NixOS/nixpkgs/pull/554151
+    enableParallelBuilding = true;
+
     src = fetchFromGitHub {
       owner = "espressif";
       repo = "qemu";
