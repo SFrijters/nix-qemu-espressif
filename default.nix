@@ -5,7 +5,7 @@ let
     pkg.override {
       sdlSupport = true;
       gtkSupport = true;
-      cocoaSupport = final.stdenv.isDarwin;
+      cocoaSupport = final.stdenv.hostPlatform.isDarwin;
     };
 in
 rec {
