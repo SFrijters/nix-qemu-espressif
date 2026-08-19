@@ -239,11 +239,11 @@ qemu'.overrideAttrs (
       previousAttrs.preCheck
       + lib.optionalString stdenv.hostPlatform.isDarwin ''
         # ERROR:../tests/unit/test-io-task.c:207:test_task_thread_complete: assertion failed: (data.worker != self)
-        substituteInPlace ../tests/unit/meson.build \
+        substituteInPlace tests/unit/meson.build \
           --replace-fail "'test-io-task'" "#'test-io-task'"
         # qemu-system-riscv32: -netdev dgram,id=st0,local.type=inet,local.host=127.0.0.1,local.port=49545,remote.type=inet,remote.host=127.0.0.1,remote.port=49544:
         # can't bind ip=127.0.0.1 to socket: Address already in use
-        substituteInPlace ../tests/qtest/meson.build \
+        substituteInPlace tests/qtest/meson.build \
           --replace-fail "'netdev-socket'" "#'netdev-socket'"
       '';
 
