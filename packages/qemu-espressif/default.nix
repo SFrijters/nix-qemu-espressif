@@ -53,8 +53,8 @@ let
     domain = "gitlab.freedesktop.org";
     owner = "slirp";
     repo = "libslirp";
-    rev = "26be815b86e8d49add8c9a8b320239b9594ff03d";
-    hash = "sha256-6LX3hupZQeg3tZdY1To5ZtkOXftwgboYul792mhUmds=";
+    rev = "dd76415fce457e319d665eb8210d05c5731360ba";
+    hash = "sha256-Spr3dO5ehuUlzx3EnJi8najANWOirwQcTsWTVRVXYuY=";
   };
 
   targets =
@@ -72,7 +72,7 @@ let
   # but we keep the internal MAJOR/MINOR/MICRO versions numerical.
   #
   # Also: do not make this string too long in general or it will break on macos GitHub runners
-  version = "9.2.2-20260417";
+  version = "9.2.2-20261109";
 
   mainProgram = if (!esp32Support) then "qemu-system-riscv32" else "qemu-system-xtensa";
 
@@ -101,7 +101,7 @@ qemu'.overrideAttrs (
       owner = "espressif";
       repo = "qemu";
       tag = "esp-develop-${version}";
-      hash = "sha256-Ts7bpags6Srt3cX2l5LfBE5nPzwpXIe9UYXKBmJ+flw=";
+      hash = "sha256-q7UndRQ2X6K9WF0M7X7QUTc5lWF6sSie6yz+z9zLsXk=";
     };
 
     # This patch in currently locked nixpkgs is for a newer version of qemu
@@ -134,20 +134,20 @@ qemu'.overrideAttrs (
       previousAttrs.postPatch
       + ''
         # Prefetch Meson subprojects, after checking that the revision that we fetch matches the original
-        grep -q "revision = ${keycodemapdb.rev}" subprojects/keycodemapdb.wrap
+        grep -q "revision = ${keycodemapdb.rev}" subprojects/keycodemapdb.wrap || (echo "Mismatch in revision of keycodemapdb subproject" && false)
         ln -s ${keycodemapdb} subprojects/keycodemapdb
 
-        grep -q "revision = ${berkeley-softfloat-3.rev}" subprojects/berkeley-softfloat-3.wrap
+        grep -q "revision = ${berkeley-softfloat-3.rev}" subprojects/berkeley-softfloat-3.wrap || (echo "Mismatch in revision of berkeley-softfloat-3 subproject" && false)
         cp -r ${berkeley-softfloat-3} subprojects/berkeley-softfloat-3
         chmod a+w subprojects/berkeley-softfloat-3
         cp subprojects/packagefiles/berkeley-softfloat-3/* subprojects/berkeley-softfloat-3
 
-        grep -q "revision = ${berkeley-testfloat-3.rev}" subprojects/berkeley-testfloat-3.wrap
+        grep -q "revision = ${berkeley-testfloat-3.rev}" subprojects/berkeley-testfloat-3.wrap || (echo "Mismatch in revision of berkeley-testfloat-3 subproject" && false)
         cp -r ${berkeley-testfloat-3} subprojects/berkeley-testfloat-3
         chmod a+w subprojects/berkeley-testfloat-3
         cp subprojects/packagefiles/berkeley-testfloat-3/* subprojects/berkeley-testfloat-3
 
-        grep -q "revision = ${libslirp.rev}" subprojects/slirp.wrap
+        grep -q "revision = ${libslirp.rev}" subprojects/slirp.wrap || (echo "Mismatch in revision of slirp subproject" && false)
         ln -s ${libslirp} subprojects/slirp
 
         # Overwrite the supplied version with the nixpkgs version with the date suffix
